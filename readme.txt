@@ -3,7 +3,7 @@ Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.5
 Tested up to: 2.7
-Stable tag: 1.0
+Stable tag: 1.1
 
 Limit rate of login attempts, including by way of cookies, for each IP.
 
@@ -48,6 +48,8 @@ This means another plugin or modification is already replacing this pluggable fu
 
 * Version 1.1
 	* Added translation support
+	* Added Swedish translation
+	* During lockout, filter out all other login errors.
 	* Minor cleanups
 * Version 1.0
 	* Initial version

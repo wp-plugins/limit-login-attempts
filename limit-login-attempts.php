@@ -68,6 +68,7 @@ $limit_login_notify_email_after = 4;
 
 $limit_login_my_error_shown = false; /* have we shown our stuff? */
 $limit_login_error_fn_exist = false; /* error replacing function */
+$limit_login_just_lockedout = false; /* started this pageload??? */
 
 
 /*
@@ -128,6 +129,7 @@ function limit_login_setup() {
 	}
 	add_filter('wp_authenticate_user', 'limit_login_wp_authenticate_user', 99999, 2);
 	add_action('login_head', 'limit_login_add_error_message');
+	add_action('login_errors', 'limit_login_fixup_error_messages');
 	add_action('admin_menu', 'limit_login_admin_menu');
 }
 
@@ -204,7 +206,9 @@ function limit_login_failed($arg) {
 
 	/* lockout? */
 	if($retries[$index] % $limit_login_allowed_retries == 0) {
-		global $limit_login_lockout_duration;
+		global $limit_login_lockout_duration, $limit_login_just_lockedout;
+
+		$limit_login_just_lockedout = true;
 
 		/* setup lockout, reset retries as needed */
 		if ($retries[$index] >= $limit_login_allowed_retries * $limit_login_allowed_lockouts) {
@@ -403,6 +407,46 @@ function limit_login_error_msg() {
 	}
 
 	return $msg;
+}
+
+
+/* Fix up the error message before showing it */
+function limit_login_fixup_error_messages($content) {
+	global $limit_login_just_lockedout;
+
+	/*
+	 * During lockout we do not want to show any other error messages (like
+	 * unknown user or empty password).
+	 */
+	if (!is_limit_login_ok() && !$limit_login_just_lockedout) {
+		return limit_login_error_msg();
+	}
+
+	/*
+	 * If more than one error message, put an extra <br /> tag between them.
+	 */
+	$msgs = explode("<br />\n", $content);
+
+	if (strlen(end($msgs)) == 0) {
+		/* remove last entry empty string */
+		array_pop($msgs);
+	}
+
+	$count = count($msgs);
+
+	if ($count == 1) {
+		return $content;
+	}
+
+	$new = '';
+	while ($count-- > 0) {
+		$new .= array_shift($msgs) . "<br />\n";
+		if ($count > 0) {
+			$new .= "<br />\n";
+		}
+	}
+
+	return $new;
 }
 
 
