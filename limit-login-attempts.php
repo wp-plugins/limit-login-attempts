@@ -646,7 +646,7 @@ function limit_login_option_page()	{
 	  <form action="options-general.php?page=limit-login-attempts" method="post">
 	    <table class="form-table">
 		  <tr>
-			<th scope="row" valign="top">Total lockouts</th>
+			<th scope="row" valign="top"><?php echo __('Total lockouts','limit-login-attempts'); ?></th>
 			<td>
 			  <?php if ($lockouts_total > 0) { ?>
 			  <input name="reset_total" value="<?php echo __('Reset Counter','limit-login-attempts'); ?>" type="submit" />
