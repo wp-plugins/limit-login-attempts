@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/limit-login-attempts\n"
-"POT-Creation-Date: 2009-01-16 00:37+0000\n"
+"POT-Creation-Date: 2009-01-20 12:47+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,216 +17,213 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: limit-login-attempts.php:315
+#: limit-login-attempts.php:319
 #, php-format
 msgid "%d hour"
 msgid_plural "%d hours"
 msgstr[0] ""
 msgstr[1] ""
 
-#: limit-login-attempts.php:320
+#: limit-login-attempts.php:325
 #, php-format
 msgid "%d minute"
 msgid_plural "%d minutes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: limit-login-attempts.php:323
+#: limit-login-attempts.php:328
 #, php-format
 msgid "[%s] Too many failed login attempts"
 msgstr ""
 
-#: limit-login-attempts.php:325
+#: limit-login-attempts.php:330
 #, php-format
 msgid ""
 "%d failed login attempts (%d lockout(s)) from IP: %s\r\n"
 "\r\n"
 msgstr ""
 
-#: limit-login-attempts.php:329
+#: limit-login-attempts.php:334
 #, php-format
 msgid ""
 "Last user attempted: %s\r\n"
 "\r\n"
 msgstr ""
 
-#: limit-login-attempts.php:332
+#: limit-login-attempts.php:337
 #, php-format
 msgid "IP was blocked for %s"
 msgstr ""
 
-#: limit-login-attempts.php:389
+#: limit-login-attempts.php:394
 msgid "<strong>ERROR</strong>: Too many failed login attempts."
 msgstr ""
 
-#: limit-login-attempts.php:393
+#: limit-login-attempts.php:398
 msgid "Please try again later."
 msgstr ""
 
-#: limit-login-attempts.php:400
+#: limit-login-attempts.php:405
 #, php-format
 msgid "Please try again in %d hour."
 msgid_plural "Please try again in %d hours."
 msgstr[0] ""
 msgstr[1] ""
 
-#: limit-login-attempts.php:402
+#: limit-login-attempts.php:407
 #, php-format
 msgid "Please try again in %d minute."
 msgid_plural "Please try again in %d minutes."
 msgstr[0] ""
 msgstr[1] ""
 
-#: limit-login-attempts.php:440
+#: limit-login-attempts.php:439
 #, php-format
 msgid "<strong>%d</strong> attempt remaining."
 msgid_plural "<strong>%d</strong> attempts remaining."
 msgstr[0] ""
 msgstr[1] ""
 
-#: limit-login-attempts.php:527
-#, php-format
-msgid ""
-"%s is unable to replace function wp_get_current_user(). Disable plugin "
-"cookie login handling, or competing plugin."
+#: limit-login-attempts.php:503
+msgid "<strong>ERROR</strong>: Incorrect username or password."
 msgstr ""
 
-#: limit-login-attempts.php:546
+#: limit-login-attempts.php:643
 msgid "IP|Internet address"
 msgstr ""
 
-#: limit-login-attempts.php:546
+#: limit-login-attempts.php:643
 msgid "Tried to log in as"
 msgstr ""
 
-#: limit-login-attempts.php:551
+#: limit-login-attempts.php:648
 #, php-format
 msgid "%d lockout"
 msgid_plural "%d lockouts"
 msgstr[0] ""
 msgstr[1] ""
 
-#: limit-login-attempts.php:577
+#: limit-login-attempts.php:674
 msgid "Cleared IP log"
 msgstr ""
 
-#: limit-login-attempts.php:585
+#: limit-login-attempts.php:682
 msgid "Reset lockout count"
 msgstr ""
 
-#: limit-login-attempts.php:593
+#: limit-login-attempts.php:690
 msgid "Cleared current lockouts"
 msgstr ""
 
-#: limit-login-attempts.php:620
+#: limit-login-attempts.php:717
 msgid "Options changed"
 msgstr ""
 
-#: limit-login-attempts.php:631
-msgid "<strong>NOTE:</strong> Only works on Wordpress 2.7 or later"
+#: limit-login-attempts.php:728
+msgid "<strong>NOTE:</strong> Only works in Wordpress 2.7 or later"
 msgstr ""
 
-#: limit-login-attempts.php:644
+#: limit-login-attempts.php:741
 msgid "Limit Login Attempts Settings"
 msgstr ""
 
-#: limit-login-attempts.php:645
+#: limit-login-attempts.php:742
 msgid "Statistics"
 msgstr ""
 
-#: limit-login-attempts.php:649
+#: limit-login-attempts.php:746
 msgid "Total lockouts"
 msgstr ""
 
-#: limit-login-attempts.php:652
+#: limit-login-attempts.php:749
 msgid "Reset Counter"
 msgstr ""
 
-#: limit-login-attempts.php:653
+#: limit-login-attempts.php:750
 #, php-format
 msgid "%d lockout since last reset"
 msgid_plural "%d lockouts since last reset"
 msgstr[0] ""
 msgstr[1] ""
 
-#: limit-login-attempts.php:654
+#: limit-login-attempts.php:751
 msgid "No lockouts yet"
 msgstr ""
 
-#: limit-login-attempts.php:659
+#: limit-login-attempts.php:756
 msgid "Active lockouts"
 msgstr ""
 
-#: limit-login-attempts.php:661
+#: limit-login-attempts.php:758
 msgid "Restore Lockouts"
 msgstr ""
 
-#: limit-login-attempts.php:662
+#: limit-login-attempts.php:759
 #, php-format
 msgid "%d IP is currently blocked from trying to log in"
 msgstr ""
 
-#: limit-login-attempts.php:672
+#: limit-login-attempts.php:769
 msgid "Lockout"
 msgstr ""
 
-#: limit-login-attempts.php:674
+#: limit-login-attempts.php:771
 msgid "allowed retries"
 msgstr ""
 
-#: limit-login-attempts.php:675
+#: limit-login-attempts.php:772
 msgid "minutes lockout"
 msgstr ""
 
-#: limit-login-attempts.php:676
+#: limit-login-attempts.php:773
 msgid "lockouts increase lockout time to"
 msgstr ""
 
-#: limit-login-attempts.php:676
+#: limit-login-attempts.php:773
 msgid "hours"
 msgstr ""
 
-#: limit-login-attempts.php:677
+#: limit-login-attempts.php:774
 msgid "hours until retries are reset"
 msgstr ""
 
-#: limit-login-attempts.php:681
+#: limit-login-attempts.php:778
 msgid "Handle cookie login"
 msgstr ""
 
-#: limit-login-attempts.php:683
+#: limit-login-attempts.php:780
 msgid "Yes"
 msgstr ""
 
-#: limit-login-attempts.php:683
+#: limit-login-attempts.php:780
 msgid "No"
 msgstr ""
 
-#: limit-login-attempts.php:688
+#: limit-login-attempts.php:785
 msgid "Notify on lockout"
 msgstr ""
 
-#: limit-login-attempts.php:690
+#: limit-login-attempts.php:787
 msgid "Log IP"
 msgstr ""
 
-#: limit-login-attempts.php:691
+#: limit-login-attempts.php:788
 msgid "Email to admin after"
 msgstr ""
 
-#: limit-login-attempts.php:691
+#: limit-login-attempts.php:788
 msgid "lockouts"
 msgstr ""
 
-#: limit-login-attempts.php:696
+#: limit-login-attempts.php:793
 msgid "Change Options"
 msgstr ""
 
-#: limit-login-attempts.php:704
+#: limit-login-attempts.php:801
 msgid "Lockout log"
 msgstr ""
 
-#: limit-login-attempts.php:708
+#: limit-login-attempts.php:805
 msgid "Clear Log"
 msgstr ""
 

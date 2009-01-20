@@ -1,14 +1,14 @@
 # Limit Login Attempts Swedish Translation
 # Copyright (C) 2009 Johan Eenfeldt
-# This file is distributed under the same license as the PACKAGE package.
+# This file is distributed under the same license as the Wordpress package.
 # Johan Eenfeldt <johan.eenfeldt@kostdoktorn.se>, 2009.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: limit-login-attempts 1.1\n"
+"Project-Id-Version: limit-login-attempts 1.2\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/limit-login-attempts\n"
-"POT-Creation-Date: 2009-01-15 20:21+0000\n"
+"POT-Creation-Date: 2009-01-20 12:47+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Johan Eenfeldt <johan.eenfeldt@kostdoktorn.se>\n"
 "Language-Team: Swedish\n"
@@ -17,222 +17,217 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: limit-login-attempts.php:315
+#: limit-login-attempts.php:319
 #, php-format
 msgid "%d hour"
 msgid_plural "%d hours"
 msgstr[0] "%d timme"
 msgstr[1] "%d timmar"
 
-#: limit-login-attempts.php:320
+#: limit-login-attempts.php:325
 #, php-format
 msgid "%d minute"
 msgid_plural "%d minutes"
 msgstr[0] "%d minut"
 msgstr[1] "%d minuter"
 
-#: limit-login-attempts.php:323
+#: limit-login-attempts.php:328
 #, php-format
 msgid "[%s] Too many failed login attempts"
-msgstr "[%s] F&ouml;r m&aring;nga misslyckade inloggningar"
+msgstr "[%s] För många misslyckade inloggningar"
 
-#: limit-login-attempts.php:325
+#: limit-login-attempts.php:330
 #, php-format
 msgid ""
 "%d failed login attempts (%d lockout(s)) from IP: %s\r\n"
 "\r\n"
 msgstr ""
-"%d misslyckade inloggningar (blockad %d g&aring;ng(er)) fr&aring;n IP: %s\r\n"
+"%d misslyckade inloggningar (blockad %d gång(er)) från IP: %s\r\n"
 "\r\n"
 
-#: limit-login-attempts.php:329
+#: limit-login-attempts.php:334
 #, php-format
 msgid ""
 "Last user attempted: %s\r\n"
 "\r\n"
 msgstr ""
-"Senast misslyckades med anv&auml;ndare : %s\r\n"
+"Senast misslyckades med användare : %s\r\n"
 "\r\n"
 
-#: limit-login-attempts.php:332
+#: limit-login-attempts.php:337
 #, php-format
 msgid "IP was blocked for %s"
-msgstr "IP har blockerats i %s"
+msgstr "IP blockerades i %s"
 
-#: limit-login-attempts.php:389
+#: limit-login-attempts.php:394
 msgid "<strong>ERROR</strong>: Too many failed login attempts."
 msgstr "<strong>Fel</strong>: F&ouml;r m&aring;nga misslyckade f&ouml;rs&ouml;k."
 
-#: limit-login-attempts.php:393
+#: limit-login-attempts.php:398
 msgid "Please try again later."
 msgstr "F&ouml;rs&ouml;k igen senare."
 
-#: limit-login-attempts.php:400
+#: limit-login-attempts.php:405
 #, php-format
 msgid "Please try again in %d hour."
 msgid_plural "Please try again in %d hours."
 msgstr[0] "F&ouml;rs&ouml;k igen om %d timme."
 msgstr[1] "F&ouml;rs&ouml;k igen om %d timmar."
 
-#: limit-login-attempts.php:402
+#: limit-login-attempts.php:407
 #, php-format
 msgid "Please try again in %d minute."
 msgid_plural "Please try again in %d minutes."
 msgstr[0] "F&ouml;rs&ouml;k igen om %d minut."
 msgstr[1] "F&ouml;rs&ouml;k igen om %d minuter."
 
-#: limit-login-attempts.php:440
+#: limit-login-attempts.php:439
 #, php-format
 msgid "<strong>%d</strong> attempt remaining."
 msgid_plural "<strong>%d</strong> attempts remaining."
 msgstr[0] "<strong>%d</strong> f&ouml;rs&ouml;k &aring;terst&aring;r."
 msgstr[1] "<strong>%d</strong> f&ouml;rs&ouml;k &aring;terst&aring;r."
 
-#: limit-login-attempts.php:527
-#, php-format
-msgid ""
-"%s is unable to replace function wp_get_current_user(). Disable plugin "
-"cookie login handling, or competing plugin."
-msgstr ""
-"%s kan inte ers&auml;tta funktionen wp_get_current_user(). St&auml;ng av "
-"inloggningshantering f&ouml;r kakor, eller eller inkompatibelt till&auml;gg."
+#: limit-login-attempts.php:503
+msgid "<strong>ERROR</strong>: Incorrect username or password."
+msgstr "<strong>Fel</strong>: Felaktigt anv&auml;ndarnamn eller l&ouml;senord."
 
-#: limit-login-attempts.php:546
+#: limit-login-attempts.php:643
 msgid "IP|Internet address"
 msgstr "IP"
 
-#: limit-login-attempts.php:546
+#: limit-login-attempts.php:643
 msgid "Tried to log in as"
 msgstr "F&ouml;rs&ouml;kte logga in som"
 
-#: limit-login-attempts.php:551
+#: limit-login-attempts.php:648
 #, php-format
 msgid "%d lockout"
 msgid_plural "%d lockouts"
 msgstr[0] "%d blockering"
 msgstr[1] "%d blockeringar"
 
-#: limit-login-attempts.php:577
+#: limit-login-attempts.php:674
 msgid "Cleared IP log"
 msgstr "Rensade IP loggen"
 
-#: limit-login-attempts.php:585
+#: limit-login-attempts.php:682
 msgid "Reset lockout count"
 msgstr "Nollst&auml;llde r&auml;knaren f&ouml;r blockeringar"
 
-#: limit-login-attempts.php:593
+#: limit-login-attempts.php:690
 msgid "Cleared current lockouts"
 msgstr "Tog bort aktuella blockeringar"
 
-#: limit-login-attempts.php:620
+#: limit-login-attempts.php:717
 msgid "Options changed"
 msgstr "Inst&auml;llningar &auml;ndrade"
 
-#: limit-login-attempts.php:631
-msgid "<strong>NOTE:</strong> Only works on Wordpress 2.7 or later"
-msgstr "<strong>OBS:</strong> Fungerar endast med WordPress 2.7 eller senare"
+#: limit-login-attempts.php:728
+msgid "<strong>NOTE:</strong> Only works in Wordpress 2.7 or later"
+msgstr "<strong>OBS:</strong> Fungerar endast i WordPress 2.7 eller senare"
 
-#: limit-login-attempts.php:644
+#: limit-login-attempts.php:741
 msgid "Limit Login Attempts Settings"
 msgstr "Limit Login Attempts Inst&auml;llningar"
 
-#: limit-login-attempts.php:645
+#: limit-login-attempts.php:742
 msgid "Statistics"
 msgstr "Statistik"
 
-#: limit-login-attempts.php:649
+#: limit-login-attempts.php:746
 msgid "Total lockouts"
 msgstr "Antal blockeringar"
 
-#: limit-login-attempts.php:652
+#: limit-login-attempts.php:749
 msgid "Reset Counter"
 msgstr "Nollst&auml;ll r&auml;knare"
 
-#: limit-login-attempts.php:653
+#: limit-login-attempts.php:750
 #, php-format
 msgid "%d lockout since last reset"
 msgid_plural "%d lockouts since last reset"
 msgstr[0] "%d blockering sedan r&auml;knaren nollst&auml;lldes"
 msgstr[1] "%d blockeringar sedan r&auml;knaren nollst&auml;lldes"
 
-#: limit-login-attempts.php:654
+#: limit-login-attempts.php:751
 msgid "No lockouts yet"
 msgstr "Inga blockeringar har skett &auml;nnu"
 
-#: limit-login-attempts.php:659
+#: limit-login-attempts.php:756
 msgid "Active lockouts"
 msgstr "Aktiva blockeringar"
 
-#: limit-login-attempts.php:661
+#: limit-login-attempts.php:758
 msgid "Restore Lockouts"
 msgstr "Ta bort blockeringar"
 
-#: limit-login-attempts.php:662
+#: limit-login-attempts.php:759
 #, php-format
 msgid "%d IP is currently blocked from trying to log in"
 msgstr "%d IP &auml;r f&ouml;r n&auml;rvarande blockerade fr&aring;n att logga in"
 
-#: limit-login-attempts.php:672
+#: limit-login-attempts.php:769
 msgid "Lockout"
 msgstr "Blockering"
 
-#: limit-login-attempts.php:674
+#: limit-login-attempts.php:771
 msgid "allowed retries"
 msgstr "till&aring;tna misslyckanden"
 
-#: limit-login-attempts.php:675
+#: limit-login-attempts.php:772
 msgid "minutes lockout"
 msgstr "minuters blockering"
 
-#: limit-login-attempts.php:676
+#: limit-login-attempts.php:773
 msgid "lockouts increase lockout time to"
 msgstr "blockeringar &ouml;kar tiden till"
 
-#: limit-login-attempts.php:676
+#: limit-login-attempts.php:773
 msgid "hours"
 msgstr "timmar"
 
-#: limit-login-attempts.php:677
+#: limit-login-attempts.php:774
 msgid "hours until retries are reset"
 msgstr "timmar tills misslyckanden nollst&auml;lls"
 
-#: limit-login-attempts.php:681
+#: limit-login-attempts.php:778
 msgid "Handle cookie login"
 msgstr "Hantera inloggning med kakor"
 
-#: limit-login-attempts.php:683
+#: limit-login-attempts.php:780
 msgid "Yes"
 msgstr "Ja"
 
-#: limit-login-attempts.php:683
+#: limit-login-attempts.php:780
 msgid "No"
 msgstr "Nej"
 
-#: limit-login-attempts.php:688
+#: limit-login-attempts.php:785
 msgid "Notify on lockout"
 msgstr "Notifiera om blockering"
 
-#: limit-login-attempts.php:690
+#: limit-login-attempts.php:787
 msgid "Log IP"
 msgstr "Logga IP"
 
-#: limit-login-attempts.php:691
+#: limit-login-attempts.php:788
 msgid "Email to admin after"
 msgstr "E-post till administrat&ouml;r efter"
 
-#: limit-login-attempts.php:691
+#: limit-login-attempts.php:788
 msgid "lockouts"
 msgstr "blockeringar"
 
-#: limit-login-attempts.php:696
+#: limit-login-attempts.php:793
 msgid "Change Options"
 msgstr "&Auml;ndra Inst&auml;llningar"
 
-#: limit-login-attempts.php:704
+#: limit-login-attempts.php:801
 msgid "Lockout log"
 msgstr "Log &ouml;ver blockeringar"
 
-#: limit-login-attempts.php:708
+#: limit-login-attempts.php:805
 msgid "Clear Log"
 msgstr "Rensa Log"
 
