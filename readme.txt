@@ -3,7 +3,7 @@ Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.5
 Tested up to: 2.7
-Stable tag: 1.1
+Stable tag: 1.2
 
 Limit rate of login attempts, including by way of cookies, for each IP.
 
@@ -22,7 +22,7 @@ Features
 * Informs user about remaining retries or lockout time on login page
 * Optional logging, optional email notification
 
-Of possible note: when cookie login handling is activated plugin overrides the pluggable function wp_get_current_user, which might collide with others wanting to do the same. If you know of any such plugins please contact me.
+Note: Cookie handling reimplemented without replacing pluggable function. Plugin now using standard actions and filters only.
 
 == Installation ==
 
@@ -30,26 +30,26 @@ Of possible note: when cookie login handling is activated plugin overrides the p
 2. Activate the plugin through the WordPress admin interface.
 3. Customize the settings from the options page, if desired.
 
-== Frequently Asked Questions ==
-
-= What do I do if I get a notice that it was unable to replace wp_get_current_user()? =
-
-This means another plugin or modification is already replacing this pluggable function (I do not yet know of any that do). Mail me with details about your plugins and we'll sort it out.
+If you have any questions or problems please make a post here: http://wordpress.org/tags/limit-login-attempts
 
 == Screenshots ==
 
 1. Loginscreen after failed login with retries remaining
-2. Loginscreen after failed login during lockout
+2. Loginscreen during lockout
 3. Administration interface in WordPress 2.7
 4. Administration interface in WordPress 2.5
 
-
 == Version History ==
 
+* Version 1.2
+	* No longer replaces pluggable function when cookie handling active. Re-implemented using available actions and filters
+	* Filter error messages during login to avoid information leak regarding available usernames
+	* Do not show retries or lockout messages except for login (registration, lost password pages). No change in actual enforcement
+	* Slightly more aggressive in trimming old retries data
 * Version 1.1
 	* Added translation support
 	* Added Swedish translation
-	* During lockout, filter out all other login errors.
+	* During lockout, filter out all other login errors
 	* Minor cleanups
 * Version 1.0
 	* Initial version
