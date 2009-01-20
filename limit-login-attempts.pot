@@ -1,0 +1,251 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Johan Eenfeldt
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/limit-login-attempts\n"
+"POT-Creation-Date: 2009-01-16 00:37+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: limit-login-attempts.php:315
+#, php-format
+msgid "%d hour"
+msgid_plural "%d hours"
+msgstr[0] ""
+msgstr[1] ""
+
+#: limit-login-attempts.php:320
+#, php-format
+msgid "%d minute"
+msgid_plural "%d minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: limit-login-attempts.php:323
+#, php-format
+msgid "[%s] Too many failed login attempts"
+msgstr ""
+
+#: limit-login-attempts.php:325
+#, php-format
+msgid ""
+"%d failed login attempts (%d lockout(s)) from IP: %s\r\n"
+"\r\n"
+msgstr ""
+
+#: limit-login-attempts.php:329
+#, php-format
+msgid ""
+"Last user attempted: %s\r\n"
+"\r\n"
+msgstr ""
+
+#: limit-login-attempts.php:332
+#, php-format
+msgid "IP was blocked for %s"
+msgstr ""
+
+#: limit-login-attempts.php:389
+msgid "<strong>ERROR</strong>: Too many failed login attempts."
+msgstr ""
+
+#: limit-login-attempts.php:393
+msgid "Please try again later."
+msgstr ""
+
+#: limit-login-attempts.php:400
+#, php-format
+msgid "Please try again in %d hour."
+msgid_plural "Please try again in %d hours."
+msgstr[0] ""
+msgstr[1] ""
+
+#: limit-login-attempts.php:402
+#, php-format
+msgid "Please try again in %d minute."
+msgid_plural "Please try again in %d minutes."
+msgstr[0] ""
+msgstr[1] ""
+
+#: limit-login-attempts.php:440
+#, php-format
+msgid "<strong>%d</strong> attempt remaining."
+msgid_plural "<strong>%d</strong> attempts remaining."
+msgstr[0] ""
+msgstr[1] ""
+
+#: limit-login-attempts.php:527
+#, php-format
+msgid ""
+"%s is unable to replace function wp_get_current_user(). Disable plugin "
+"cookie login handling, or competing plugin."
+msgstr ""
+
+#: limit-login-attempts.php:546
+msgid "IP|Internet address"
+msgstr ""
+
+#: limit-login-attempts.php:546
+msgid "Tried to log in as"
+msgstr ""
+
+#: limit-login-attempts.php:551
+#, php-format
+msgid "%d lockout"
+msgid_plural "%d lockouts"
+msgstr[0] ""
+msgstr[1] ""
+
+#: limit-login-attempts.php:577
+msgid "Cleared IP log"
+msgstr ""
+
+#: limit-login-attempts.php:585
+msgid "Reset lockout count"
+msgstr ""
+
+#: limit-login-attempts.php:593
+msgid "Cleared current lockouts"
+msgstr ""
+
+#: limit-login-attempts.php:620
+msgid "Options changed"
+msgstr ""
+
+#: limit-login-attempts.php:631
+msgid "<strong>NOTE:</strong> Only works on Wordpress 2.7 or later"
+msgstr ""
+
+#: limit-login-attempts.php:644
+msgid "Limit Login Attempts Settings"
+msgstr ""
+
+#: limit-login-attempts.php:645
+msgid "Statistics"
+msgstr ""
+
+#: limit-login-attempts.php:649
+msgid "Total lockouts"
+msgstr ""
+
+#: limit-login-attempts.php:652
+msgid "Reset Counter"
+msgstr ""
+
+#: limit-login-attempts.php:653
+#, php-format
+msgid "%d lockout since last reset"
+msgid_plural "%d lockouts since last reset"
+msgstr[0] ""
+msgstr[1] ""
+
+#: limit-login-attempts.php:654
+msgid "No lockouts yet"
+msgstr ""
+
+#: limit-login-attempts.php:659
+msgid "Active lockouts"
+msgstr ""
+
+#: limit-login-attempts.php:661
+msgid "Restore Lockouts"
+msgstr ""
+
+#: limit-login-attempts.php:662
+#, php-format
+msgid "%d IP is currently blocked from trying to log in"
+msgstr ""
+
+#: limit-login-attempts.php:672
+msgid "Lockout"
+msgstr ""
+
+#: limit-login-attempts.php:674
+msgid "allowed retries"
+msgstr ""
+
+#: limit-login-attempts.php:675
+msgid "minutes lockout"
+msgstr ""
+
+#: limit-login-attempts.php:676
+msgid "lockouts increase lockout time to"
+msgstr ""
+
+#: limit-login-attempts.php:676
+msgid "hours"
+msgstr ""
+
+#: limit-login-attempts.php:677
+msgid "hours until retries are reset"
+msgstr ""
+
+#: limit-login-attempts.php:681
+msgid "Handle cookie login"
+msgstr ""
+
+#: limit-login-attempts.php:683
+msgid "Yes"
+msgstr ""
+
+#: limit-login-attempts.php:683
+msgid "No"
+msgstr ""
+
+#: limit-login-attempts.php:688
+msgid "Notify on lockout"
+msgstr ""
+
+#: limit-login-attempts.php:690
+msgid "Log IP"
+msgstr ""
+
+#: limit-login-attempts.php:691
+msgid "Email to admin after"
+msgstr ""
+
+#: limit-login-attempts.php:691
+msgid "lockouts"
+msgstr ""
+
+#: limit-login-attempts.php:696
+msgid "Change Options"
+msgstr ""
+
+#: limit-login-attempts.php:704
+msgid "Lockout log"
+msgstr ""
+
+#: limit-login-attempts.php:708
+msgid "Clear Log"
+msgstr ""
+
+#. Plugin Name of an extension
+msgid "Limit Login Attempts"
+msgstr ""
+
+#. Plugin URI of an extension
+msgid "http://devel.kostdoktorn.se/limit-login-attempts"
+msgstr ""
+
+#. Description of an extension
+msgid "Limit rate of login attempts, including by way of cookies, for each IP."
+msgstr ""
+
+#. Author of an extension
+msgid "Johan Eenfeldt"
+msgstr ""
+
+#. Author URI of an extension
+msgid "http://devel.kostdoktorn.se"
+msgstr ""

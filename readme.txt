@@ -1,9 +1,9 @@
 === Limit Login Attempts ===
 Contributors: johanee
-Tags: login, security
+Tags: login, security, authentication
 Requires at least: 2.5
 Tested up to: 2.7
-Stable tag: 1.0
+Stable tag: 1.1
 
 Limit rate of login attempts, including by way of cookies, for each IP.
 
@@ -30,9 +30,26 @@ Of possible note: when cookie login handling is activated plugin overrides the p
 2. Activate the plugin through the WordPress admin interface.
 3. Customize the settings from the options page, if desired.
 
+== Frequently Asked Questions ==
+
+= What do I do if I get a notice that it was unable to replace wp_get_current_user()? =
+
+This means another plugin or modification is already replacing this pluggable function (I do not yet know of any that do). Mail me with details about your plugins and we'll sort it out.
+
 == Screenshots ==
 
 1. Loginscreen after failed login with retries remaining
 2. Loginscreen after failed login during lockout
 3. Administration interface in WordPress 2.7
 4. Administration interface in WordPress 2.5
+
+
+== Version History ==
+
+* Version 1.1
+	* Added translation support
+	* Added Swedish translation
+	* During lockout, filter out all other login errors.
+	* Minor cleanups
+* Version 1.0
+	* Initial version
