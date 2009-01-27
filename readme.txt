@@ -20,6 +20,7 @@ Features
 * Limit the number of retry attempts when logging in (for each IP). Fully customizable
 * (WordPress 2.7+) Limit the number of attempts to log in using auth cookies in same way
 * Informs user about remaining retries or lockout time on login page
+* Handles server behind reverse proxy
 * Optional logging, optional email notification
 
 Note: Cookie handling reimplemented without replacing pluggable function. Plugin now using standard actions and filters only.
@@ -28,9 +29,21 @@ Note: Cookie handling reimplemented without replacing pluggable function. Plugin
 
 1. Download and extract plugin files to a folder in your wp-content/plugin directory.
 2. Activate the plugin through the WordPress admin interface.
-3. Customize the settings from the options page, if desired.
+3. Customize the settings from the options page, if desired. If your server is located behind a reverse proxy make sure to change this setting.
 
 If you have any questions or problems please make a post here: http://wordpress.org/tags/limit-login-attempts
+
+== Frequently Asked Questions ==
+
+= What is this option about site connection and reverse proxy? =
+
+A reverse proxy is a server in between the site and the Internet (perhaps handling caching or load-balancing). This makes getting the correct client IP to block slightly more complicated.
+
+The option default to NOT being behind a proxy -- which should be by far the common case.
+
+= How do I know if my site is behind a reverse proxy? =
+
+You probably are not or you would know. We show a pretty good guess on the option page. Set the option using this unless you are sure you know better.
 
 == Screenshots ==
 
@@ -41,6 +54,8 @@ If you have any questions or problems please make a post here: http://wordpress.
 
 == Version History ==
 
+* Version 1.3
+	* Support for getting the correct IP for clients while server is behind reverse proxy, thanks to Michael Skerwiderski <michael@skerwiderski.de>
 * Version 1.2
 	* No longer replaces pluggable function when cookie handling active. Re-implemented using available actions and filters
 	* Filter error messages during login to avoid information leak regarding available usernames
