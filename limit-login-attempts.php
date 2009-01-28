@@ -5,7 +5,7 @@
   Description: Limit rate of login attempts, including by way of cookies, for each IP.
   Author: Johan Eenfeldt
   Author URI: http://devel.kostdoktorn.se
-  Version: 1.3b1
+  Version: 1.3b2
 
   Copyright 2008, 2009 Johan Eenfeldt
 
@@ -162,11 +162,11 @@ function limit_login_get_address($type_name = '') {
 
 /* Check if it is ok to login */
 function is_limit_login_ok() {
-	$index = limit_login_get_address();
+	$ip = limit_login_get_address();
 
 	/* lockout active? */
 	$lockouts = get_option('limit_login_lockouts');
-	return (!is_array($lockouts) || !isset($lockouts[$index]) || time() >= $lockouts[$index]);
+	return (!is_array($lockouts) || !isset($lockouts[$ip]) || time() >= $lockouts[$ip]);
 }
 
 
@@ -226,11 +226,11 @@ function limit_login_failed_cookie($arg) {
  * lockout if nr of retries are above threshold. And more!
  */
 function limit_login_failed($arg) {
-	$index = limit_login_get_address();
+	$ip = limit_login_get_address();
 
 	/* if currently locked-out, do not add to retries */
 	$lockouts = get_option('limit_login_lockouts');
-	if(is_array($lockouts) && isset($lockouts[$index]) && time() < $lockouts[$index]) {
+	if(is_array($lockouts) && isset($lockouts[$ip]) && time() < $lockouts[$ip]) {
 		return;
 	} elseif (!is_array($lockouts)) {
 		$lockouts = array();
@@ -249,15 +249,15 @@ function limit_login_failed($arg) {
 	}
 
 	/* Check validity and add one to retries */
-	if (isset($retries[$index]) && isset($valid[$index]) && time() < $valid[$index]) {
-		$retries[$index] ++;
+	if (isset($retries[$ip]) && isset($valid[$ip]) && time() < $valid[$ip]) {
+		$retries[$ip] ++;
 	} else {
-		$retries[$index] = 1;
+		$retries[$ip] = 1;
 	}
-	$valid[$index] = time() + limit_login_option('valid_duration');
+	$valid[$ip] = time() + limit_login_option('valid_duration');
 
 	/* lockout? */
-	if($retries[$index] % limit_login_option('allowed_retries') == 0) {
+	if($retries[$ip] % limit_login_option('allowed_retries') == 0) {
 		global $limit_login_just_lockedout;
 
 		$limit_login_just_lockedout = true;
@@ -265,14 +265,14 @@ function limit_login_failed($arg) {
 		/* setup lockout, reset retries as needed */
 		$retries_long = limit_login_option('allowed_retries')
 			* limit_login_option('allowed_lockouts');
-		if ($retries[$index] >= $retries_long) {
+		if ($retries[$ip] >= $retries_long) {
 			/* long lockout */
-			$lockouts[$index] = time() + limit_login_option('long_duration');
-			unset($retries[$index]);
-			unset($valid[$index]);
+			$lockouts[$ip] = time() + limit_login_option('long_duration');
+			unset($retries[$ip]);
+			unset($valid[$ip]);
 		} else {
 			/* normal lockout */
-			$lockouts[$index] = time() + limit_login_option('lockout_duration');
+			$lockouts[$ip] = time() + limit_login_option('lockout_duration');
 		}
 
 		/* try to find username which failed */
@@ -348,7 +348,7 @@ function limit_login_cleanup($retries = null, $lockouts = null, $valid = null) {
 
 /* Email notification of lockout to admin (if configured) */
 function limit_login_notify_email($user) {
-	$index = limit_login_get_address();
+	$ip = limit_login_get_address();
 	$retries = get_option('limit_login_retries');
 
 	if (!is_array($retries)) {
@@ -356,14 +356,14 @@ function limit_login_notify_email($user) {
 	}
 
 	/* check if we are at the right nr to do notification */
-	if ( isset($retries[$index])
-		 && ( ($retries[$index] / limit_login_option('allowed_retries'))
+	if ( isset($retries[$ip])
+		 && ( ($retries[$ip] / limit_login_option('allowed_retries'))
 			  % limit_login_option('notify_email_after') ) != 0 ) {
 		return;
 	}
 
 	/* Format message. First current lockout duration */
-	if (!isset($retries[$index])) {
+	if (!isset($retries[$ip])) {
 		/* longer lockout */
 		$count = limit_login_option('allowed_retries')
 			* limit_login_option('allowed_lockouts');
@@ -372,7 +372,7 @@ function limit_login_notify_email($user) {
 		$when = sprintf(__ngettext('%d hour', '%d hours', $time, 'limit-login-attempts'), $time);
 	} else {
 		/* normal lockout */
-		$count = $retries[$index];
+		$count = $retries[$ip];
 		$lockouts = floor($count / limit_login_option('allowed_retries'));
 		$time = round(limit_login_option('lockout_duration') / 60);
 		$when = sprintf(__ngettext('%d minute', '%d minutes', $time, 'limit-login-attempts'), $time);
@@ -382,7 +382,7 @@ function limit_login_notify_email($user) {
 					   , get_option('blogname'));
 	$message = sprintf(__("%d failed login attempts (%d lockout(s)) from IP: %s\r\n\r\n"
 						  , 'limit-login-attempts')
-					   , $count, $lockouts, $index);
+					   , $count, $lockouts, $ip);
 	if ($user != '') {
 		$message .= sprintf(__("Last user attempted: %s\r\n\r\n", 'limit-login-attempts')
 							, $user);
@@ -439,18 +439,18 @@ function limit_login_notify($user) {
 
 /* Construct informative error message */
 function limit_login_error_msg() {
-	$index = limit_login_get_address();
+	$ip = limit_login_get_address();
 	$lockouts = get_option('limit_login_lockouts');
 
 	$msg = __('<strong>ERROR</strong>: Too many failed login attempts.', 'limit-login-attempts') . ' ';
 
-	if (!is_array($lockouts) || !isset($lockouts[$index]) || time() >= $lockouts[$index]) {
+	if (!is_array($lockouts) || !isset($lockouts[$ip]) || time() >= $lockouts[$ip]) {
 		/* Huh? No timeout active? */
 		$msg .=  __('Please try again later.', 'limit-login-attempts');
 		return $msg;
 	}
 
-	$when = ceil(($lockouts[$index] - time()) / 60);
+	$when = ceil(($lockouts[$ip] - time()) / 60);
 	if ($when > 60) {
 		$when = ceil($when / 60);
 		$msg .= sprintf(__ngettext('Please try again in %d hour.', 'Please try again in %d hours.', $when, 'limit-login-attempts'), $when);
@@ -464,7 +464,7 @@ function limit_login_error_msg() {
 
 /* Construct retries remaining message */
 function limit_login_retries_remaining_msg() {
-	$index = limit_login_get_address();
+	$ip = limit_login_get_address();
 	$retries = get_option('limit_login_retries');
 	$valid = get_option('limit_login_retries_valid');
 
@@ -474,16 +474,16 @@ function limit_login_retries_remaining_msg() {
 		/* no retries at all */
 		return '';
 	}
-	if (!isset($retries[$index]) || !isset($valid[$index]) || time() > $valid[$index]) {
+	if (!isset($retries[$ip]) || !isset($valid[$ip]) || time() > $valid[$ip]) {
 		/* no: no valid retries */
 		return '';
 	}
-	if (($retries[$index] % limit_login_option('allowed_retries')) == 0 ) {
+	if (($retries[$ip] % limit_login_option('allowed_retries')) == 0 ) {
 		/* no: already been locked out for these retries */
 		return '';
 	}
 
-	$remaining = max((limit_login_option('allowed_retries') - ($retries[$index] % limit_login_option('allowed_retries'))), 0);
+	$remaining = max((limit_login_option('allowed_retries') - ($retries[$ip] % limit_login_option('allowed_retries'))), 0);
 	return sprintf(__ngettext("<strong>%d</strong> attempt remaining.", "<strong>%d</strong> attempts remaining.", $remaining, 'limit-login-attempts'), $remaining);
 }
 
