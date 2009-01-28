@@ -854,7 +854,7 @@ function limit_login_option_page()	{
 		  <?php } ?>
 		</table>
 	  </form>
-	  <h3>Options</h3>
+	  <h3><?php echo __('Options','limit-login-attempts'); ?></h3>
 	  <form action="options-general.php?page=limit-login-attempts" method="post">
 	    <table class="form-table">
 		  <tr>
