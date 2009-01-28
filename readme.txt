@@ -3,7 +3,7 @@ Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.5
 Tested up to: 2.7
-Stable tag: 1.1
+Stable tag: 1.3
 
 Limit rate of login attempts, including by way of cookies, for each IP.
 
@@ -21,35 +21,51 @@ Features
 * (WordPress 2.7+) Limit the number of attempts to log in using auth cookies in same way
 * Informs user about remaining retries or lockout time on login page
 * Optional logging, optional email notification
+* Handles server behind reverse proxy
 
-Of possible note: when cookie login handling is activated plugin overrides the pluggable function wp_get_current_user, which might collide with others wanting to do the same. If you know of any such plugins please contact me.
+Plugin uses standard actions and filters only.
 
 == Installation ==
 
 1. Download and extract plugin files to a folder in your wp-content/plugin directory.
 2. Activate the plugin through the WordPress admin interface.
-3. Customize the settings from the options page, if desired.
+3. Customize the settings from the options page, if desired. If your server is located behind a reverse proxy make sure to change this setting.
+
+If you have any questions or problems please make a post here: http://wordpress.org/tags/limit-login-attempts
 
 == Frequently Asked Questions ==
 
-= What do I do if I get a notice that it was unable to replace wp_get_current_user()? =
+= What is this option about site connection and reverse proxy? =
 
-This means another plugin or modification is already replacing this pluggable function (I do not yet know of any that do). Mail me with details about your plugins and we'll sort it out.
+A reverse proxy is a server in between the site and the Internet (perhaps handling caching or load-balancing). This makes getting the correct client IP to block slightly more complicated.
+
+The option default to NOT being behind a proxy -- which should be by far the common case.
+
+= How do I know if my site is behind a reverse proxy? =
+
+You probably are not or you would know. We show a pretty good guess on the option page. Set the option using this unless you are sure you know better.
 
 == Screenshots ==
 
 1. Loginscreen after failed login with retries remaining
-2. Loginscreen after failed login during lockout
+2. Loginscreen during lockout
 3. Administration interface in WordPress 2.7
 4. Administration interface in WordPress 2.5
 
-
 == Version History ==
 
+* Version 1.3
+	* Support for getting the correct IP for clients while server is behind reverse proxy, thanks to Michael Skerwiderski
+	* Added German translation, thanks to Michael Skerwiderski
+* Version 1.2
+	* No longer replaces pluggable function when cookie handling active. Re-implemented using available actions and filters
+	* Filter error messages during login to avoid information leak regarding available usernames
+	* Do not show retries or lockout messages except for login (registration, lost password pages). No change in actual enforcement
+	* Slightly more aggressive in trimming old retries data
 * Version 1.1
 	* Added translation support
 	* Added Swedish translation
-	* During lockout, filter out all other login errors.
+	* During lockout, filter out all other login errors
 	* Minor cleanups
 * Version 1.0
 	* Initial version
