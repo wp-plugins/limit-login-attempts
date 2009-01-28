@@ -3,7 +3,7 @@ Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.5
 Tested up to: 2.7
-Stable tag: 1.2
+Stable tag: 1.3
 
 Limit rate of login attempts, including by way of cookies, for each IP.
 
@@ -20,10 +20,10 @@ Features
 * Limit the number of retry attempts when logging in (for each IP). Fully customizable
 * (WordPress 2.7+) Limit the number of attempts to log in using auth cookies in same way
 * Informs user about remaining retries or lockout time on login page
-* Handles server behind reverse proxy
 * Optional logging, optional email notification
+* Handles server behind reverse proxy
 
-Note: Cookie handling reimplemented without replacing pluggable function. Plugin now using standard actions and filters only.
+Plugin uses standard actions and filters only.
 
 == Installation ==
 
@@ -55,7 +55,8 @@ You probably are not or you would know. We show a pretty good guess on the optio
 == Version History ==
 
 * Version 1.3
-	* Support for getting the correct IP for clients while server is behind reverse proxy, thanks to Michael Skerwiderski <michael@skerwiderski.de>
+	* Support for getting the correct IP for clients while server is behind reverse proxy, thanks to Michael Skerwiderski
+	* Added German translation, thanks to Michael Skerwiderski
 * Version 1.2
 	* No longer replaces pluggable function when cookie handling active. Re-implemented using available actions and filters
 	* Filter error messages during login to avoid information leak regarding available usernames

@@ -5,9 +5,11 @@
   Description: Limit rate of login attempts, including by way of cookies, for each IP.
   Author: Johan Eenfeldt
   Author URI: http://devel.kostdoktorn.se
-  Version: 1.3b2
+  Version: 1.3
 
   Copyright 2008, 2009 Johan Eenfeldt
+
+  Thanks to Michael Skerwiderski for reverse proxy handling.
 
   Licenced under the GNU GPL:
 
@@ -380,12 +382,12 @@ function limit_login_notify_email($user) {
 
 	$subject = sprintf(__("[%s] Too many failed login attempts", 'limit-login-attempts')
 					   , get_option('blogname'));
-	$message = sprintf(__("%d failed login attempts (%d lockout(s)) from IP: %s\r\n\r\n"
-						  , 'limit-login-attempts')
+	$message = sprintf(__("%d failed login attempts (%d lockout(s)) from IP: %s"
+						  , 'limit-login-attempts') . "\r\n\r\n"
 					   , $count, $lockouts, $ip);
 	if ($user != '') {
-		$message .= sprintf(__("Last user attempted: %s\r\n\r\n", 'limit-login-attempts')
-							, $user);
+		$message .= sprintf(__("Last user attempted: %s", 'limit-login-attempts')
+							 . "\r\n\r\n" , $user);
 	}
 	$message .= sprintf(__("IP was blocked for %s", 'limit-login-attempts'), $when);
 

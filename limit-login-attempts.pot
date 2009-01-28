@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/limit-login-attempts\n"
-"POT-Creation-Date: 2009-01-28 09:09+0000\n"
+"POT-Creation-Date: 2009-01-28 17:17+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -39,15 +39,13 @@ msgstr ""
 #: limit-login-attempts.php:383
 #, php-format
 msgid ""
-"%d failed login attempts (%d lockout(s)) from IP: %s\r\n"
-"\r\n"
+"%d failed login attempts (%d lockout(s)) from IP: %s"
 msgstr ""
 
 #: limit-login-attempts.php:387
 #, php-format
 msgid ""
-"Last user attempted: %s\r\n"
-"\r\n"
+"Last user attempted: %s"
 msgstr ""
 
 #: limit-login-attempts.php:390
@@ -181,6 +179,10 @@ msgstr ""
 #: limit-login-attempts.php:851
 #, php-format
 msgid "%d IP is currently blocked from trying to log in"
+msgstr ""
+
+#: limit-login-attempts.php:857
+msgid "Options"
 msgstr ""
 
 #: limit-login-attempts.php:861
