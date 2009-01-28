@@ -812,9 +812,9 @@ function limit_login_option_page()	{
 	$client_type_guess = limit_login_guess_proxy();
 
 	if ($client_type_guess == LIMIT_LOGIN_DIRECT_ADDR) {
-		$client_type_message = sprintf(__('It appears the site is reached directly (from your IP: %s)'), limit_login_get_address(LIMIT_LOGIN_DIRECT_ADDR));
+		$client_type_message = sprintf(__('It appears the site is reached directly (from your IP: %s)','limit-login-attempts'), limit_login_get_address(LIMIT_LOGIN_DIRECT_ADDR));
 	} else {
-		$client_type_message = sprintf(__('It appears the site is reached through a proxy server (proxy IP: %s, your IP: %s)'), limit_login_get_address(LIMIT_LOGIN_DIRECT_ADDR), limit_login_get_address(LIMIT_LOGIN_PROXY_ADDR));
+		$client_type_message = sprintf(__('It appears the site is reached through a proxy server (proxy IP: %s, your IP: %s)','limit-login-attempts'), limit_login_get_address(LIMIT_LOGIN_DIRECT_ADDR), limit_login_get_address(LIMIT_LOGIN_PROXY_ADDR));
 	}
 	$client_type_message .= '<br />';
 
@@ -822,7 +822,7 @@ function limit_login_option_page()	{
 	if ($client_type != $client_type_guess) {
 		$faq = 'http://wordpress.org/extend/plugins/limit-login-attempts/faq/';
 
-		$client_type_warning = '<br /><br />' . sprintf(__('<strong>Current setting appears to be invalid</strong>. Please make sure it is correct. Further information can be found <a href="%s" title="FAQ">here</a>'), $faq);
+		$client_type_warning = '<br /><br />' . sprintf(__('<strong>Current setting appears to be invalid</strong>. Please make sure it is correct. Further information can be found <a href="%s" title="FAQ">here</a>','limit-login-attempts'), $faq);
 	}
 
 	$v = explode(',', limit_login_option('lockout_notify')); 
