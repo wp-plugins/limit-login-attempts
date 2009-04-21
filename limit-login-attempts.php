@@ -558,7 +558,7 @@ function limit_login_filter_pwd_reset($b, $userid) {
 
 	/* Not allowed -- use same error as retrieve_password() */
 	$error = new WP_Error();
-	$error->add('invalidcombo', __('<strong>ERROR</strong>: Invalid username or e-mail.'));
+	$error->add('invalidcombo', __('<strong>ERROR</strong>: Invalid username or e-mail.', 'limit-login-attempts'));
 	return $error;
 }
 
