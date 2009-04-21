@@ -5,9 +5,11 @@ Requires at least: 2.5
 Tested up to: 2.7.1
 Stable tag: 1.3.1
 
-Limit rate of login attempts, including by way of cookies, for each IP.
+Limit rate of login attempts, including by way of cookies, for each IP. (BETA VERSION)
 
 == Description ==
+
+THIS IS A BETA VERSION!
 
 Limit the number of login attempts possible both through normal login as well as (WordPress 2.7+) using auth cookies.
 
@@ -18,10 +20,12 @@ Limit Login Attempts blocks an Internet address from making further attempts aft
 Features
 
 * Limit the number of retry attempts when logging in (for each IP). Fully customizable
-* (WordPress 2.7+) Limit the number of attempts to log in using auth cookies in same way
 * Informs user about remaining retries or lockout time on login page
 * Optional logging, optional email notification
 * Handles server behind reverse proxy
+* (WordPress 2.7+) Also handles attempts to log in using auth cookies
+* Helps hide user login names
+* Optional restriction on password reset attempts for privileged users, and rate limit new user registration
 
 Plugin uses standard actions and filters only.
 
@@ -32,6 +36,12 @@ Plugin uses standard actions and filters only.
 3. Customize the settings from the options page, if desired. If your server is located behind a reverse proxy make sure to change this setting.
 
 If you have any questions or problems please make a post here: http://wordpress.org/tags/limit-login-attempts
+
+== Todo ==
+
+* There is no built in way to change user login name or nicename.
+* Smarter matching vs login name
+* Translations
 
 == Frequently Asked Questions ==
 
@@ -53,6 +63,20 @@ If you have ftp / ssh access to the site rename the file "wp-content/plugins/lim
 
 If you have access to the database (for example through phpMyAdmin) you can clear the limit_login_lockouts option in the wordpress options table. In a default setup this would work: "UPDATE wp_options SET option_value = '' WHERE option_name = 'limit_login_lockouts'"
 
+= Why the privileged users list? Why are some names marked? =
+
+These are the various names WordPress has for each user. To increase security the login name should not be the same as any of these.
+
+= What is URL Name / "nicename"? =
+
+"Nicename" is what WordPress calls it (internally). It is constructed directly from the login name and is used in the public author url (among other things).
+
+= I disabled password reset for administrators and forgot my password, what do I do? =
+
+If you have ftp / ssh access look at the answer regarding being locked out above.
+
+If you have access to the database (for example through phpMyAdmin) you can clear the limit_login_reset_min_role option in the wordpress options table. In a default setup this would work: "UPDATE wp_options SET option_value = '' WHERE option_name = 'limit_login_reset_min_role'"
+
 == Screenshots ==
 
 1. Loginscreen after failed login with retries remaining
@@ -62,6 +86,13 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 
 == Version History ==
 
+* Version 2.0beta1
+	* Added a number of options that when activated make it harder to find login names of users
+		* disable password reset using username (accept user email only) for users with a specified role or higher
+		* disable password reset for users with a specified role or higher
+		* restrict rate of new user registrations
+		* filter registration error messages to avoid possible way to brute force find user login name
+		* list of privileged users show which login names can be discovered from user displayname, nickname or "url name"/nicename
 * Version 1.3.1
 	* Added Catalan translation, thanks to Robert Buj
 	* Added Romanian translation, thanks to Robert Tudor
