@@ -2,8 +2,8 @@
 Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.5
-Tested up to: 2.7
-Stable tag: 1.3
+Tested up to: 2.7.1
+Stable tag: 1.3.1
 
 Limit rate of login attempts, including by way of cookies, for each IP.
 
@@ -45,6 +45,14 @@ The option default to NOT being behind a proxy -- which should be by far the com
 
 You probably are not or you would know. We show a pretty good guess on the option page. Set the option using this unless you are sure you know better.
 
+= I locked myself out testing this thing, what do I do? =
+
+Either wait, or:
+
+If you have ftp / ssh access to the site rename the file "wp-content/plugins/limit-login-attempts/limit-login-attempts.php" to deactivate the plugin.
+
+If you have access to the database (for example through phpMyAdmin) you can clear the limit_login_lockouts option in the wordpress options table. In a default setup this would work: "UPDATE wp_options SET option_value = '' WHERE option_name = 'limit_login_lockouts'"
+
 == Screenshots ==
 
 1. Loginscreen after failed login with retries remaining
@@ -54,6 +62,9 @@ You probably are not or you would know. We show a pretty good guess on the optio
 
 == Version History ==
 
+* Version 1.3.1
+	* Added Catalan translation, thanks to Robert Buj
+	* Added Romanian translation, thanks to Robert Tudor
 * Version 1.3
 	* Support for getting the correct IP for clients while server is behind reverse proxy, thanks to Michael Skerwiderski
 	* Added German translation, thanks to Michael Skerwiderski
