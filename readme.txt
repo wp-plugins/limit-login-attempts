@@ -2,8 +2,8 @@
 Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.5
-Tested up to: 2.7.1
-Stable tag: 1.3.1
+Tested up to: 2.8.4
+Stable tag: 1.3.2
 
 Limit rate of login attempts, including by way of cookies, for each IP. (BETA VERSION)
 
@@ -27,6 +27,8 @@ Features
 * Helps hide user login names
 * Optional restriction on password reset attempts for privileged users, and rate limit new user registration
 
+Translations: Bulgarian, Catalan, German, Norwegian, Persian, Romanian, Russian, Spanish, Swedish
+
 Plugin uses standard actions and filters only.
 
 == Installation ==
@@ -39,9 +41,10 @@ If you have any questions or problems please make a post here: http://wordpress.
 
 == Todo ==
 
-* There is no built in way to change user login name or nicename.
-* Smarter matching vs login name
+* There is no built in way to change user login name or nicename -- split to separate plugin?
 * Translations
+* Test vs. 2.5
+* Keep two versions (1.x and 2.x)?
 
 == Frequently Asked Questions ==
 

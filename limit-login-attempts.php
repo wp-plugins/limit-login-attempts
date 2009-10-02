@@ -78,7 +78,7 @@ $limit_login_options =
 		  , 'notify_email_after' => 4
 
 		  /* Enforce limit on new user registrations for IP */
-		  , 'register_enforce' => false
+		  , 'register_enforce' => true
 
 		  /* Allow this many new user registrations ... */
 		  , 'register_allowed' => 3
@@ -87,7 +87,7 @@ $limit_login_options =
 		  , 'register_duration' => 86400 // 24 hours
 
 		  /* Allow password reset using login name? */
-		  , 'disable_pwd_reset_username' => false
+		  , 'disable_pwd_reset_username' => true
 
 		  /* ... for capability level_xx or higher */
 		  , 'pwd_reset_username_limit' => 1
@@ -385,23 +385,23 @@ function limit_login_cleanup($retries = null, $lockouts = null, $valid = null) {
 
 	/* do the same for the registration arrays, if necessary */
 	$valid = get_option('limit_login_registrations_valid');
-	$retries = get_option('limit_login_registrations');
-	if (is_array($valid) && !empty($valid) && is_array($retries) && !empty($retries)) {
-		foreach ($valid as $ip => $lockout) {
-			if ($lockout < $now) {
+	$regs = get_option('limit_login_registrations');
+	if (is_array($valid) && !empty($valid) && is_array($regs) && !empty($regs)) {
+		foreach ($valid as $ip => $until) {
+			if ($until < $now) {
 				unset($valid[$ip]);
-				unset($retries[$ip]);
+				unset($regs[$ip]);
 			}
 		}
 
-		/* go through retries directly, if for some reason they've gone out of sync */
-		foreach ($retries as $ip => $retry) {
+		/* go through registrations directly, if for some reason they've gone out of sync */
+		foreach ($regs as $ip => $reg) {
 			if (!isset($valid[$ip])) {
-				unset($retries[$ip]);
+				unset($regs[$ip]);
 			}
 		}
 
-		update_option('limit_login_registrations', $retries);
+		update_option('limit_login_registrations', $regs);
 		update_option('limit_login_registrations_valid', $valid);
 	}
 }
@@ -533,16 +533,18 @@ function limit_login_user_has_level($userid, $level) {
 function limit_login_filter_pwd_reset($b, $userid) {
 	$limit = null;
 
-	/* What limit to use, if any */
+	/* What limit (max privilege level) to use, if any */
 	if (limit_login_option('disable_pwd_reset')) {
+		/* limit on all pwd resets */
 		$limit = intval(limit_login_option('pwd_reset_limit'));
 	}
 
 	if (limit_login_option('disable_pwd_reset_username') && !strpos($_POST['user_login'], '@')) {
-		$limit2 = intval(limit_login_option('pwd_reset_username_limit'));
+		/* limit on pwd reset using user name */
+		$limit_username = intval(limit_login_option('pwd_reset_username_limit'));
 
-		if (is_null($limit) || $limit > $limit2) {
-			$limit = $limit2;
+		if (is_null($limit) || $limit > $limit_username) {
+			$limit = $limit_username;
 		}
 	}
 
@@ -576,7 +578,11 @@ function limit_login_notify_email($user) {
 		$retries = array();
 	}
 
-	/* check if we are at the right nr to do notification */
+	/* Check if we are at the right nr to do notification
+	 * 
+	 * Todo: this always sends notification on long lockout (when $retries[$ip]
+	 * is reset).
+	 */
 	if ( isset($retries[$ip])
 		 && ( ($retries[$ip] / limit_login_option('allowed_retries'))
 			  % limit_login_option('notify_email_after') ) != 0 ) {
@@ -997,6 +1003,15 @@ function limit_login_show_log($log) {
 }
 
 
+/* Remove space and - characters before comparing (because of how user_nicename
+ * is constructed from user_login) */
+function limit_login_fuzzy_cmp($s1, $s2) {
+	$remove = array(' ', '-');
+
+	return strcasecmp(str_replace($remove, '', $s1), str_replace($remove, '', $s2));
+}
+
+
 /* Show privileged users various names, and warn if equal to login name */
 function limit_login_show_users() {
 	global $wpdb;
@@ -1018,10 +1033,10 @@ function limit_login_show_users() {
 
 	$r = '';
 	foreach ($users as $user) {
-		$login_ok = strcasecmp($user->user_login, 'admin');
-		$display_ok = strcasecmp($user->user_login, $user->display_name);
-		$nicename_ok = strcasecmp($user->user_login, $user->user_nicename);
-		$nickname_ok = strcasecmp($user->user_login, $user->nickname);
+		$login_ok = limit_login_fuzzy_cmp($user->user_login, 'admin');
+		$display_ok = limit_login_fuzzy_cmp($user->user_login, $user->display_name);
+		$nicename_ok = limit_login_fuzzy_cmp($user->user_login, $user->user_nicename);
+		$nickname_ok = limit_login_fuzzy_cmp($user->user_login, $user->nickname);
 
 		if ($login_ok && $display_ok && $nicename_ok && $nickname_ok) {
 			continue;
