@@ -5,7 +5,7 @@
   Description: Limit rate of login attempts, including by way of cookies, for each IP.
   Author: Johan Eenfeldt
   Author URI: http://devel.kostdoktorn.se
-  Version: 1.3.1
+  Version: 1.3.2
 
   Copyright 2008, 2009 Johan Eenfeldt
 
