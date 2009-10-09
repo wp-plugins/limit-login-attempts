@@ -3,7 +3,7 @@ Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.5
 Tested up to: 2.8.4
-Stable tag: 1.3.2
+Stable tag: 1.4
 
 Limit rate of login attempts, including by way of cookies, for each IP. (BETA VERSION)
 
@@ -27,7 +27,7 @@ Features
 * Helps hide user login names
 * Optional restriction on password reset attempts for privileged users, and rate limit new user registration
 
-Translations: Bulgarian, Catalan, German, Norwegian, Persian, Romanian, Russian, Spanish, Swedish
+Translations: Bulgarian, Catalan, Czech, German, Norwegian, Persian, Romanian, Russian, Spanish, Swedish
 
 Plugin uses standard actions and filters only.
 
@@ -44,7 +44,7 @@ If you have any questions or problems please make a post here: http://wordpress.
 * There is no built in way to change user login name or nicename -- split to separate plugin?
 * Translations
 * Test vs. 2.5
-* Keep two versions (1.x and 2.x)?
+* Look through readme.txt
 
 == Frequently Asked Questions ==
 
@@ -68,7 +68,7 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 
 = Why the privileged users list? Why are some names marked? =
 
-These are the various names WordPress has for each user. To increase security the login name should not be the same as any of these.
+These are the various names WordPress has for each user. To increase security the login name should not be the same as any of the others.
 
 = What is URL Name / "nicename"? =
 
@@ -89,6 +89,13 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 
 == Version History ==
 
+* Version 2.0beta3
+	* Checkpoint release for translations
+	* Added basic functionality to edit user names
+	* Added Wordpress version dependency for password reset functionality
+	* Code clean-ups
+* Version 2.0beta2
+	* Various fixes
 * Version 2.0beta1
 	* Added a number of options that when activated make it harder to find login names of users
 		* disable password reset using username (accept user email only) for users with a specified role or higher
@@ -96,6 +103,15 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 		* restrict rate of new user registrations
 		* filter registration error messages to avoid possible way to brute force find user login name
 		* list of privileged users show which login names can be discovered from user displayname, nickname or "url name"/nicename
+* Version 1.4
+	* Protect admin page update using wp_nonce
+	* Added Czech translation, thanks to Jakub Jedelsky
+* Version 1.3.2
+	* Added Bulgarian translation, thanks to Hristo Chakarov
+	* Added Norwegian translation, thanks to Rune Gulbrandsøy
+	* Added Spanish translation, thanks to Marcelo Pedra
+	* Added Persian translation, thanks to Mostafa Soufi
+	* Added Russian translation, thanks to Jack Leonid (http://studio-xl.com)
 * Version 1.3.1
 	* Added Catalan translation, thanks to Robert Buj
 	* Added Romanian translation, thanks to Robert Tudor

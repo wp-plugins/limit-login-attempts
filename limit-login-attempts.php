@@ -5,7 +5,7 @@
   Description: Limit rate of login attempts, including by way of cookies, for each IP.
   Author: Johan Eenfeldt
   Author URI: http://devel.kostdoktorn.se
-  Version: 2.0beta1
+  Version: 2.0beta3
 
   Copyright 2008, 2009 Johan Eenfeldt
 
@@ -36,7 +36,7 @@
 define('LIMIT_LOGIN_DIRECT_ADDR', 'REMOTE_ADDR');
 define('LIMIT_LOGIN_PROXY_ADDR', 'HTTP_X_FORWARDED_FOR');
 
-/* Notify value checked against these in limit_login_sanitize_variables() */
+/* Notify value checked against these in limit_login_sanitize_options() */
 define('LIMIT_LOGIN_LOCKOUT_NOTIFY_ALLOWED', 'log,email');
 
 /*
@@ -86,14 +86,20 @@ $limit_login_options =
 		  /* ... during this time */
 		  , 'register_duration' => 86400 // 24 hours
 
-		  /* Allow password reset using login name? */
+		  /* Allow password reset using login name?
+		   *
+		   * NOTE: Only works in WP 2.6.5+, as necessary filter was added then.
+		   */
 		  , 'disable_pwd_reset_username' => true
 
 		  /* ... for capability level_xx or higher */
 		  , 'pwd_reset_username_limit' => 1
 
-		  /* Allow password resets at all? */
-		  , 'disable_pwd_reset' => true
+		  /* Allow password resets at all?
+		   *
+		   * NOTE: Only works in WP 2.6.5+, as necessary filter was added then.
+		   */
+		  , 'disable_pwd_reset' => false
 
 		  /* ... for capability level_xx or higher */
 		  , 'pwd_reset_limit' => 1
@@ -105,9 +111,11 @@ $limit_login_nonempty_credentials = false; /* user and pwd nonempty */
 
 /* Level of the different roles. Used for descriptive purposes only */
 $limit_login_level_role =
-	array(0 => 'Subscriber', 1 => 'Contributor', 2 => 'Author', 7 => 'Editor'
-		  , 10 => 'Administrator');
-
+	array(0 => __('Subscriber','limit-login-attempts')
+		  , 1 => __('Contributor','limit-login-attempts')
+		  , 2 => __('Author','limit-login-attempts')
+		  , 7 => __('Editor','limit-login-attempts')
+		  , 10 => __('Administrator','limit-login-attempts'));
 
 /*
  * Startup
@@ -183,13 +191,38 @@ function limit_login_get_address($type_name = '') {
 }
 
 
-/* Check if it is ok to login */
-function is_limit_login_ok() {
-	$ip = limit_login_get_address();
+/* Helpfunction to check ip in time array (lockout/valid)
+ *
+ * Returns true if array exists, ip is key in array, and value (time) is not
+ * past.
+ */
+function limit_login_check_time($check_array, $ip = null) {
+	if (!$ip)
+		$ip = limit_login_get_address();
 
-	/* lockout active? */
-	$lockouts = get_option('limit_login_lockouts');
-	return (!is_array($lockouts) || !isset($lockouts[$ip]) || time() >= $lockouts[$ip]);
+	return (is_array($check_array) && isset($check_array[$ip])
+			&& time() <= $check_array[$ip]);
+}
+
+
+/* Helpfunction to check ip in time (lockout/valid) array
+ *
+ * Returns true if array exists, ip is key in array, and value (time) is not
+ * past.
+ */
+function limit_login_check_count($check_array, $count, $ip = null) {
+	if (!$ip)
+		$ip = limit_login_get_address();
+
+	return (is_array($check_array) && isset($check_array[$ip])
+			&& $count > $check_array[$ip]);
+}
+
+
+/* Is it ok to login? */
+function is_limit_login_ok() {
+	/* Test that there is not a (still valid) lockout on ip in lockouts array */
+	return !limit_login_check_time(limit_login_get_array('lockouts'));
 }
 
 
@@ -201,13 +234,12 @@ function is_limit_login_reg_ok() {
 
 	$ip = limit_login_get_address();
 
-	/* too many registrations? */
-	$regs = get_option('limit_login_registrations');
-	$valid = get_option('limit_login_registrations_valid');
-	return (!is_array($regs) || !isset($regs[$ip])
-			|| !is_array($valid) || !isset($valid[$ip])
-			|| time() >= $valid[$ip]
-			|| $regs[$ip] < limit_login_option('register_allowed'));
+	/* not too many (valid) registrations? */
+	$valid = limit_login_get_array('registrations_valid');
+	$regs = limit_login_get_array('registrations');
+	$allowed = limit_login_option('register_allowed');
+	return (!limit_login_check_time($valid, $ip)
+			|| !limit_login_check_count($regs, $allowed, $ip));
 }
 
 
@@ -269,25 +301,15 @@ function limit_login_failed_cookie($arg) {
 function limit_login_failed($arg) {
 	$ip = limit_login_get_address();
 
-	/* if currently locked-out, do not add to retries */
-	$lockouts = get_option('limit_login_lockouts');
-	if(is_array($lockouts) && isset($lockouts[$ip]) && time() < $lockouts[$ip]) {
+	$lockouts = limit_login_get_array('lockouts');
+	if (limit_login_check_time($lockouts)) {
+		/* if currently locked-out, do not add to retries */
 		return;
-	} elseif (!is_array($lockouts)) {
-		$lockouts = array();
 	}
 
 	/* Get the arrays with retries and retries-valid information */
-	$retries = get_option('limit_login_retries');
-	$valid = get_option('limit_login_retries_valid');
-	if ($retries === false) {
-		$retries = array();
-		add_option('limit_login_retries', $retries, '', 'no');
-	}
-	if ($valid === false) {
-		$valid = array();
-		add_option('limit_login_retries_valid', $valid, '', 'no');
-	}
+	$retries = limit_login_get_array('retries');
+	$valid = limit_login_get_array('retries_valid');
 
 	/* Check validity and add one to retries */
 	if (isset($retries[$ip]) && isset($valid[$ip]) && time() < $valid[$ip]) {
@@ -346,25 +368,23 @@ function limit_login_failed($arg) {
 }
 
 
-/* Clean up any old lockouts and old retries */
+/* Clean up any old lockouts and old retries and save arrays */
 function limit_login_cleanup($retries = null, $lockouts = null, $valid = null) {
 	$now = time();
-	$lockouts = !is_null($lockouts) ? $lockouts : get_option('limit_login_lockouts');
+	$lockouts = !is_null($lockouts) ? $lockouts : limit_login_get_array('lockouts');
 
 	/* remove old lockouts */
-	if (is_array($lockouts)) {
-		foreach ($lockouts as $ip => $lockout) {
-			if ($lockout < $now) {
-				unset($lockouts[$ip]);
-			}
+	foreach ($lockouts as $ip => $lockout) {
+		if ($lockout < $now) {
+			unset($lockouts[$ip]);
 		}
-		update_option('limit_login_lockouts', $lockouts);
 	}
+	limit_login_save_array('lockouts', $lockouts);
 
 	/* remove retries that are no longer valid */
-	$valid = !is_null($valid) ? $valid : get_option('limit_login_retries_valid');
-	$retries = !is_null($retries) ? $retries : get_option('limit_login_retries');
-	if (is_array($valid) && !empty($valid) && is_array($retries) && !empty($retries)) {
+	$valid = !is_null($valid) ? $valid : limit_login_get_array('retries_valid');
+	$retries = !is_null($retries) ? $retries : limit_login_get_array('retries');
+	if (!empty($valid) && !empty($retries)) {
 		foreach ($valid as $ip => $lockout) {
 			if ($lockout < $now) {
 				unset($valid[$ip]);
@@ -379,14 +399,14 @@ function limit_login_cleanup($retries = null, $lockouts = null, $valid = null) {
 			}
 		}
 
-		update_option('limit_login_retries', $retries);
-		update_option('limit_login_retries_valid', $valid);
+		limit_login_save_array('retries', $retries);
+		limit_login_save_array('retries_valid', $valid);
 	}
 
 	/* do the same for the registration arrays, if necessary */
-	$valid = get_option('limit_login_registrations_valid');
-	$regs = get_option('limit_login_registrations');
-	if (is_array($valid) && !empty($valid) && is_array($regs) && !empty($regs)) {
+	$valid = limit_login_get_array('registrations_valid');
+	$regs = limit_login_get_array('registrations');
+	if (!empty($valid) && !empty($regs)) {
 		foreach ($valid as $ip => $until) {
 			if ($until < $now) {
 				unset($valid[$ip]);
@@ -401,8 +421,8 @@ function limit_login_cleanup($retries = null, $lockouts = null, $valid = null) {
 			}
 		}
 
-		update_option('limit_login_registrations', $regs);
-		update_option('limit_login_registrations_valid', $valid);
+		limit_login_save_array('registrations', $regs);
+		limit_login_save_array('registrations_valid', $valid);
 	}
 }
 
@@ -419,16 +439,8 @@ function limit_login_reg_add() {
 	$ip = limit_login_get_address();
 
 	/* Get the arrays with registrations and valid information */
-	$regs = get_option('limit_login_registrations');
-	$valid = get_option('limit_login_registrations_valid');
-	if ($regs === false) {
-		$regs = array();
-		add_option('limit_login_registrations', $regs, '', 'no');
-	}
-	if ($valid === false) {
-		$valid = array();
-		add_option('limit_login_registrations_valid', $valid, '', 'no');
-	}
+	$regs = limit_login_get_array('registrations');
+	$valid = limit_login_get_array('registrations_valid');
 
 	/* Check validity and add one registration */
 	if (isset($regs[$ip]) && isset($valid[$ip]) && time() < $valid[$ip]) {
@@ -438,8 +450,8 @@ function limit_login_reg_add() {
 	}
 	$valid[$ip] = time() + limit_login_option('register_duration');
 
-	update_option('limit_login_registrations', $regs);
-	update_option('limit_login_registrations_valid', $valid);
+	limit_login_save_array('registrations', $regs);
+	limit_login_save_array('registrations_valid', $valid);
 
 	/* increase statistics? */
 	if ($regs[$ip] >= limit_login_option('register_allowed')) {
@@ -519,7 +531,7 @@ function limit_login_user_has_level($userid, $level) {
 	$userid = intval($userid);
 	$level = intval($level);
 
-	if ($userid == 0) {
+	if ($userid <= 0) {
 		return false;
 	}
 
@@ -536,13 +548,14 @@ function limit_login_filter_pwd_reset($b, $userid) {
 	/* What limit (max privilege level) to use, if any */
 	if (limit_login_option('disable_pwd_reset')) {
 		/* limit on all pwd resets */
-		$limit = intval(limit_login_option('pwd_reset_limit'));
+		$limit = limit_login_option('pwd_reset_limit');
 	}
 
 	if (limit_login_option('disable_pwd_reset_username') && !strpos($_POST['user_login'], '@')) {
 		/* limit on pwd reset using user name */
-		$limit_username = intval(limit_login_option('pwd_reset_username_limit'));
+		$limit_username = limit_login_option('pwd_reset_username_limit');
 
+		/* use lowest limit */
 		if (is_null($limit) || $limit > $limit_username) {
 			$limit = $limit_username;
 		}
@@ -572,11 +585,7 @@ function limit_login_filter_pwd_reset($b, $userid) {
 /* Email notification of lockout to admin (if configured) */
 function limit_login_notify_email($user) {
 	$ip = limit_login_get_address();
-	$retries = get_option('limit_login_retries');
-
-	if (!is_array($retries)) {
-		$retries = array();
-	}
+	$retries = limit_login_get_array('retries');
 
 	/* Check if we are at the right nr to do notification
 	 * 
@@ -622,24 +631,20 @@ function limit_login_notify_email($user) {
 
 /* Logging of lockout (if configured) */
 function limit_login_notify_log($user) {
-	$log = get_option('limit_login_logged');
+	$log = limit_login_get_array('logged');
 	$ip = limit_login_get_address();
-	if ($log === false) {
-		$log = array($ip => array($user => 1));
-		add_option('limit_login_logged', $log, '', 'no'); /* no autoload */
-	} else {
-		/* can be written much simpler, if you do not mind php warnings */
-		if (isset($log[$ip])) {
-			if (isset($log[$ip][$user])) {	
-				$log[$ip][$user]++;
-			} else {
-				$log[$ip][$user] = 1;
-			}
+
+	/* can be written much simpler, if you do not mind php warnings */
+	if (isset($log[$ip])) {
+		if (isset($log[$ip][$user])) {	
+			$log[$ip][$user]++;
 		} else {
-			$log[$ip] = array($user => 1);
+			$log[$ip][$user] = 1;
 		}
-		update_option('limit_login_logged', $log);
+	} else {
+		$log[$ip] = array($user => 1);
 	}
+	limit_login_save_array('logged', $log);
 }
 
 
@@ -671,7 +676,7 @@ function limit_login_notify($user) {
 /* Construct message for registration lockout */
 function limit_login_reg_error_msg() {
 	$msg = __('<strong>ERROR</strong>: Too many new user registrations.', 'limit-login-attempts') . ' ';
-	return limit_login_error_msg('limit_login_registrations_valid', $msg);
+	return limit_login_error_msg('registrations_valid', $msg);
 }
 
 
@@ -686,15 +691,15 @@ function limit_login_filter_login_message($content) {
 
 
 /* Construct informative error message */
-function limit_login_error_msg($lockout_option = 'limit_login_lockouts', $msg = '') {
+function limit_login_error_msg($lockout_option = 'lockouts', $msg = '') {
 	$ip = limit_login_get_address();
-	$lockouts = get_option($lockout_option);
+	$lockouts = limit_login_get_array($lockout_option);
 
 	if ($msg == '') {
 		$msg = __('<strong>ERROR</strong>: Too many failed login attempts.', 'limit-login-attempts') . ' ';
 	}
 
-	if (!is_array($lockouts) || !isset($lockouts[$ip]) || time() >= $lockouts[$ip]) {
+	if (!isset($lockouts[$ip]) || time() >= $lockouts[$ip]) {
 		/* Huh? No lockout? */
 		$msg .= __('Please try again later.', 'limit-login-attempts');
 		return $msg;
@@ -715,15 +720,10 @@ function limit_login_error_msg($lockout_option = 'limit_login_lockouts', $msg = 
 /* Construct retries remaining message */
 function limit_login_retries_remaining_msg() {
 	$ip = limit_login_get_address();
-	$retries = get_option('limit_login_retries');
-	$valid = get_option('limit_login_retries_valid');
+	$retries = limit_login_get_array('retries');
+	$valid = limit_login_get_array('retries_valid');
 
 	/* Should we show retries remaining? */
-
-	if (!is_array($retries) || !is_array($valid)) {
-		/* no retries at all */
-		return '';
-	}
 	if (!isset($retries[$ip]) || !isset($valid[$ip]) || time() > $valid[$ip]) {
 		/* no: no valid retries */
 		return '';
@@ -786,7 +786,8 @@ function limit_login_fixup_error_messages($content) {
 
 	/*
 	 * During lockout we do not want to show any other error messages (like
-	 * unknown user or empty password).
+	 * unknown user or empty password) -- unless this was the attempt that
+	 * locked us out.
 	 */
 	if (!is_limit_login_ok() && !$limit_login_just_lockedout) {
 		return limit_login_error_msg();
@@ -796,8 +797,8 @@ function limit_login_fixup_error_messages($content) {
 	 * We want to filter the messages 'Invalid username' and 'Invalid password'
 	 * as that is an information leak regarding user account names.
 	 *
-	 * Also, if more than one error message, put an extra <br /> tag between
-	 * them.
+	 * Also, if there are more than one error message, put an extra <br /> tag
+	 * between them.
 	 */
 	$msgs = explode("<br />\n", $content);
 
@@ -872,6 +873,13 @@ function limit_login_support_cookie_option() {
 }
 
 
+/* Does wordpress version support password reset options? */
+function limit_login_support_pwd_reset_options() {
+	global $wp_version;
+	return (version_compare($wp_version, '2.6.5', '>='));
+}
+
+
 /*
  * Handle plugin options
  */
@@ -895,6 +903,7 @@ function limit_login_get_option($option, $var_name) {
 	if ($a !== false) {
 		global $limit_login_options;
 
+		/* Make sure type is correct */
 		if (is_bool($limit_login_options[$var_name])) {
 			$a = !!$a;
 		} elseif (is_numeric($limit_login_options[$var_name])) {
@@ -916,7 +925,7 @@ function limit_login_setup_options() {
 		limit_login_get_option('limit_login_' . $name, $name);
 	}
 
-	limit_login_sanitize_variables();
+	limit_login_sanitize_options();
 }
 
 
@@ -934,7 +943,7 @@ function limit_login_update_options() {
 
 
 /* Make sure the variables make sense */
-function limit_login_sanitize_variables() {
+function limit_login_sanitize_options() {
 	global $limit_login_options;
 
 	$notify_email_after = max(1, intval(limit_login_option('notify_email_after')));
@@ -959,6 +968,37 @@ function limit_login_sanitize_variables() {
 		 && limit_login_option('client_type') != LIMIT_LOGIN_PROXY_ADDR ) {
 		$limit_login_options['client_type'] = LIMIT_LOGIN_DIRECT_ADDR;
 	}
+
+	$pwd_reset_func_supported = limit_login_support_pwd_reset_options();
+	$pwd_reset_username = limit_login_option('disable_pwd_reset_username')
+		&& $pwd_reset_func_supported;
+	$pwd_reset = limit_login_option('disable_pwd_reset')
+		&& $pwd_reset_func_supported;
+
+	$limit_login_options['disable_pwd_reset_username'] = $pwd_reset_username;
+	$limit_login_options['disable_pwd_reset'] = $pwd_reset;
+}
+
+
+/* Get stored array -- add if necessary */
+function limit_login_get_array($array_name) {
+	$real_array_name = 'limit_login_' . $array_name;
+
+	$a = get_option($real_array_name);
+
+	if ($a === false) {
+		$a = array();
+		add_option($real_array_name, $a, '', 'no'); /* no autoload */
+	}
+
+	return $a;
+}
+
+
+/* Store array  */
+function limit_login_save_array($array_name, $a) {
+	$real_array_name = 'limit_login_' . $array_name;
+	update_option($real_array_name, $a);
 }
 
 
@@ -1022,7 +1062,8 @@ function limit_login_show_users() {
 		. " INNER JOIN $wpdb->usermeta um ON u.ID = um.user_id"
 		. " LEFT JOIN $wpdb->usermeta um2 ON u.ID = um2.user_id"
 		. " WHERE um.meta_key = '{$wpdb->prefix}capabilities'"
-		. " AND NOT um.meta_value LIKE '%subscriber%'"
+		. " AND NOT (um.meta_value LIKE '%subscriber%'"
+		. "          OR um.meta_value LIKE '%unapproved%')"
 		. " AND um2.meta_key = 'nickname'";
 
 	$users = $wpdb->get_results($sql);
@@ -1051,6 +1092,8 @@ function limit_login_show_users() {
 					, __("Make url name different from login name", 'limit-login-attempts'));
 		$nickname = limit_login_show_maybe_warning(!$nickname_ok, $user->nickname
 					, __("Make nickname different from login name", 'limit-login-attempts'));
+
+		/* http://192.168.1.9/webb/www.kostdoktorn.se/wordpress-2.8.4/wp-admin/user-edit.php?user_id=2&wp_http_referer=%2Fwebb%2Fwww.kostdoktorn.se%2Fwordpress-2.8.4%2Fwp-admin%2Fusers.php *******/
 
 		$r .= '<tr><td>' . $login . '</td>'
 			. '<td>' . $role . '</td>'
@@ -1119,7 +1162,7 @@ function limit_login_select_level($current) {
 }
 
 
-/* Get most options from $_POST[] (not lockout_notify) */
+/* Get options from $_POST[] and update global options variable */
 function limit_login_get_options_from_post() {
 	global $limit_login_options;
 
@@ -1146,6 +1189,16 @@ function limit_login_get_options_from_post() {
 
 		$limit_login_options[$name] = $value;
 	}
+
+	/* Special handling for lockout_notify */
+	$v = array();
+	if (isset($_POST['lockout_notify_log'])) {
+		$v[] = 'log';
+	}
+	if (isset($_POST['lockout_notify_email'])) {
+		$v[] = 'email';
+	}
+	$limit_login_options['lockout_notify'] = implode(',', $v);
 }
 
 
@@ -1155,6 +1208,11 @@ function limit_login_option_page()	{
 
 	if (!current_user_can('manage_options')) {
 		wp_die('Sorry, but you do not have permissions to change settings.');
+	}
+
+	/* Make sure post was from this page */
+	if (count($_POST) > 0) {
+		check_admin_referer('limit-login-attempts-options');
 	}
 		
 	/* Should we clear log? */
@@ -1183,20 +1241,8 @@ function limit_login_option_page()	{
 
 	/* Should we update options? */
 	if (isset($_POST['update_options'])) {
-		global $limit_login_options;
-
 		limit_login_get_options_from_post();
-
-		$v = array();
-		if (isset($_POST['lockout_notify_log'])) {
-			$v[] = 'log';
-		}
-		if (isset($_POST['lockout_notify_email'])) {
-			$v[] = 'email';
-		}
-		$limit_login_options['lockout_notify'] = implode(',', $v);
-
-		limit_login_sanitize_variables();
+		limit_login_sanitize_options();
 		limit_login_update_options();
 		echo '<div id="message" class="updated fade"><p>'
 			. __('Options changed', 'limit-login-attempts')
@@ -1210,8 +1256,8 @@ function limit_login_option_page()	{
 	if (!limit_login_support_cookie_option()) {
 		$cookies_disabled = ' DISABLED ';
 		$cookies_note = ' <br /> '
-			. __('<strong>NOTE:</strong> Only works in Wordpress 2.7 or later'
-				 , 'limit-login-attempts');
+			. sprintf(__('<strong>NOTE:</strong> Only works in Wordpress %s or later'
+						 , 'limit-login-attempts'), '2.7');
 	} else {
 		$cookies_disabled = '';
 		$cookies_note = '';
@@ -1241,6 +1287,17 @@ function limit_login_option_page()	{
 	$v = explode(',', limit_login_option('lockout_notify')); 
 	$log_checked = in_array('log', $v) ? ' checked ' : '';
 	$email_checked = in_array('email', $v) ? ' checked ' : '';
+
+
+	if (!limit_login_support_pwd_reset_options()) {
+		$pwd_reset_options_disabled = ' DISABLED ';
+		$pwd_reset_options_note = ' <br /> '
+			. sprintf(__('<strong>NOTE:</strong> Only works in Wordpress %s or later'
+						 , 'limit-login-attempts'), '2.6.5');
+	} else {
+		$pwd_reset_options_disabled = '';
+		$pwd_reset_options_note = '';
+	}
 
 	$disable_pwd_reset_username_yes = limit_login_option('disable_pwd_reset_username') ? ' checked ' : '';
 	$disable_pwd_reset_yes = limit_login_option('disable_pwd_reset') ? ' checked ' : '';
@@ -1276,6 +1333,7 @@ function limit_login_option_page()	{
 	  <h2><?php echo __('Limit Login Attempts Settings','limit-login-attempts'); ?></h2>
 	  <h3><?php echo __('Statistics','limit-login-attempts'); ?></h3>
 	  <form action="options-general.php?page=limit-login-attempts" method="post">
+		<?php wp_nonce_field('limit-login-attempts-options'); ?>
 	    <table class="form-table">
 		  <tr>
 			<th scope="row" valign="top"><?php echo __('Total lockouts','limit-login-attempts'); ?></th>
@@ -1299,6 +1357,7 @@ function limit_login_option_page()	{
 	  </form>
 	  <h3><?php echo __('Options','limit-login-attempts'); ?></h3>
 	  <form action="options-general.php?page=limit-login-attempts" method="post">
+		<?php wp_nonce_field('limit-login-attempts-options'); ?>
 	    <table class="form-table">
 		  <tr>
 			<th scope="row" valign="top"><?php echo __('Lockout','limit-login-attempts'); ?></th>
@@ -1342,10 +1401,11 @@ function limit_login_option_page()	{
 		  </tr>
 		  <tr>
 			<th scope="row" valign="top"><?php echo __('Password reset','limit-login-attempts'); ?></th>
-			<td>
-			  <label><input type="checkbox" name="disable_pwd_reset_username" <?php echo $disable_pwd_reset_username_yes; ?> value="1" /> <?php echo __('Disable password reset using login name for user this level or higher','limit-login-attempts'); ?></label> <select name="pwd_reset_username_limit"><?php limit_login_select_level(limit_login_option('pwd_reset_username_limit')); ?></select>
+			<td>						
+			  <label><input type="checkbox" name="disable_pwd_reset_username" <?php echo $pwd_reset_options_disabled . $disable_pwd_reset_username_yes; ?> value="1" /> <?php echo __('Disable password reset using login name for user this level or higher','limit-login-attempts'); ?></label> <select name="pwd_reset_username_limit" <?php echo $pwd_reset_options_disabled; ?> ><?php limit_login_select_level(limit_login_option('pwd_reset_username_limit')); ?></select>
 			  <br />
-			  <label><input type="checkbox" name="disable_pwd_reset" <?php echo $disable_pwd_reset_yes; ?> value="1" /> <?php echo __('Disable password reset for users this level or higher','limit-login-attempts'); ?></label> <select name="pwd_reset_limit"><?php limit_login_select_level(limit_login_option('pwd_reset_limit')); ?></select>
+			  <label><input type="checkbox" name="disable_pwd_reset" <?php echo $pwd_reset_options_disabled . $disable_pwd_reset_yes; ?> value="1" /> <?php echo __('Disable password reset for users this level or higher','limit-login-attempts'); ?></label> <select name="pwd_reset_limit" <?php echo $pwd_reset_options_disabled; ?> ><?php limit_login_select_level(limit_login_option('pwd_reset_limit')); ?></select>
+			  <?php echo $pwd_reset_options_note; ?>
 			</td>
 		  </tr>
 		  <tr>
@@ -1364,7 +1424,7 @@ function limit_login_option_page()	{
 		<?php limit_login_show_users(); ?>
 	  </table>
 	  <?php
-		$log = get_option('limit_login_logged');
+		$log = limit_login_get_array('logged');
 
 		if (is_array($log) && count($log) > 0) {
 	  ?>
@@ -1375,6 +1435,7 @@ function limit_login_option_page()	{
 		</table>
 	  </div>
 	  <form action="options-general.php?page=limit-login-attempts" method="post">
+		<?php wp_nonce_field('limit-login-attempts-options'); ?>
 		<input type="hidden" value="true" name="clear_log" />
 		<p class="submit">
 		  <input name="submit" value="<?php echo __('Clear Log','limit-login-attempts'); ?>" type="submit" />
@@ -1385,5 +1446,5 @@ function limit_login_option_page()	{
 	  ?>
 	</div>	
 	<?php		
-}	
+}
 ?>
