@@ -5,7 +5,7 @@
   Description: Limit rate of login attempts, including by way of cookies, for each IP.
   Author: Johan Eenfeldt
   Author URI: http://devel.kostdoktorn.se
-  Version: 1.3.2
+  Version: 1.4
 
   Copyright 2008, 2009 Johan Eenfeldt
 
@@ -737,6 +737,11 @@ function limit_login_option_page()	{
 	if (!current_user_can('manage_options')) {
 		wp_die('Sorry, but you do not have permissions to change settings.');
 	}
+
+	/* Make sure post was from this page */
+	if (count($_POST) > 0) {
+		check_admin_referer('limit-login-attempts-options');
+	}
 		
 	/* Should we clear log? */
 	if (isset($_POST['clear_log'])) {
@@ -835,6 +840,7 @@ function limit_login_option_page()	{
 	  <h2><?php echo __('Limit Login Attempts Settings','limit-login-attempts'); ?></h2>
 	  <h3><?php echo __('Statistics','limit-login-attempts'); ?></h3>
 	  <form action="options-general.php?page=limit-login-attempts" method="post">
+		<?php wp_nonce_field('limit-login-attempts-options'); ?>
 	    <table class="form-table">
 		  <tr>
 			<th scope="row" valign="top"><?php echo __('Total lockouts','limit-login-attempts'); ?></th>
@@ -858,6 +864,7 @@ function limit_login_option_page()	{
 	  </form>
 	  <h3><?php echo __('Options','limit-login-attempts'); ?></h3>
 	  <form action="options-general.php?page=limit-login-attempts" method="post">
+		<?php wp_nonce_field('limit-login-attempts-options'); ?>
 	    <table class="form-table">
 		  <tr>
 			<th scope="row" valign="top"><?php echo __('Lockout','limit-login-attempts'); ?></th>
@@ -911,6 +918,7 @@ function limit_login_option_page()	{
 	  ?>
 	  <h3><?php echo __('Lockout log','limit-login-attempts'); ?></h3>
 	  <form action="options-general.php?page=limit-login-attempts" method="post">
+		<?php wp_nonce_field('limit-login-attempts-options'); ?>
 		<input type="hidden" value="true" name="clear_log" />
 		<p class="submit">
 		  <input name="submit" value="<?php echo __('Clear Log','limit-login-attempts'); ?>" type="submit" />
