@@ -3,7 +3,7 @@ Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.5
 Tested up to: 2.8.4
-Stable tag: 1.4
+Stable tag: 1.4.1
 
 Limit rate of login attempts, including by way of cookies, for each IP.
 
@@ -23,7 +23,7 @@ Features
 * Optional logging, optional email notification
 * Handles server behind reverse proxy
 
-Translations: Bulgarian, Catalan, Czech, German, Norwegian, Persian, Romanian, Russian, Spanish, Swedish
+Translations: Bulgarian, Catalan, Czech, German, Norwegian, Persian, Romanian, Russian, Spanish, Swedish, Turkish
 
 Plugin uses standard actions and filters only.
 
@@ -64,6 +64,8 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 
 == Version History ==
 
+* Version 1.4.1
+	* Added Turkish translation, thanks to Yazan Canarkadas
 * Version 1.4
 	* Protect admin page update using wp_nonce
 	* Added Czech translation, thanks to Jakub Jedelsky
