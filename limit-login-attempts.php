@@ -205,20 +205,6 @@ function limit_login_check_time($check_array, $ip = null) {
 }
 
 
-/* Helpfunction to check ip in time (lockout/valid) array
- *
- * Returns true if array exists, ip is key in array, and value (time) is not
- * past.
- */
-function limit_login_check_count($check_array, $count, $ip = null) {
-	if (!$ip)
-		$ip = limit_login_get_address();
-
-	return (is_array($check_array) && isset($check_array[$ip])
-			&& $count > $check_array[$ip]);
-}
-
-
 /* Is it ok to login? */
 function is_limit_login_ok() {
 	/* Test that there is not a (still valid) lockout on ip in lockouts array */
@@ -239,7 +225,7 @@ function is_limit_login_reg_ok() {
 	$regs = limit_login_get_array('registrations');
 	$allowed = limit_login_option('register_allowed');
 	return (!limit_login_check_time($valid, $ip)
-			|| !limit_login_check_count($regs, $allowed, $ip));
+			|| !isset($regs[$ip]) || $regs[$ip] < $allowed);
 }
 
 
@@ -1009,6 +995,10 @@ function limit_login_save_array($array_name, $a) {
 /* Add admin options page */
 function limit_login_admin_menu() {
 	add_options_page('Limit Login Attempts', 'Limit Login Attempts', 8, 'limit-login-attempts', 'limit_login_option_page');
+
+	if ( $_GET['page'] == "limit-login-attempts" ) {	
+		wp_enqueue_script('jquery');
+	}
 }
 
 
@@ -1073,29 +1063,33 @@ function limit_login_show_users() {
 	}
 
 	$r = '';
+	$bad_count = 0;
 	foreach ($users as $user) {
 		$login_ok = limit_login_fuzzy_cmp($user->user_login, 'admin');
 		$display_ok = limit_login_fuzzy_cmp($user->user_login, $user->display_name);
 		$nicename_ok = limit_login_fuzzy_cmp($user->user_login, $user->user_nicename);
 		$nickname_ok = limit_login_fuzzy_cmp($user->user_login, $user->nickname);
 
-		if ($login_ok && $display_ok && $nicename_ok && $nickname_ok) {
-			continue;
+		if (!($login_ok && $display_ok && $nicename_ok && $nickname_ok)) {
+			$bad_count++;
 		}
 
+		$edit = "user-edit.php?user_id={$user->ID}";
+		$nicename_input = '<input type="text" size="20" maxlength="45"'
+			. " value=\"{$user->user_nicename}\" name=\"nicename-{$user->ID}\""
+			. ' class="warning-disabled" disabled="true" />';
+
 		$role = implode(',', array_keys(maybe_unserialize($user->role)));
-		$login = limit_login_show_maybe_warning(!$login_ok, $user->user_login
+		$login = limit_login_show_maybe_warning(!$login_ok, $user->user_login, $edit
 					, __("Account named admin should not have privileges", 'limit-login-attempts'));
-		$display = limit_login_show_maybe_warning(!$display_ok, $user->display_name
+		$display = limit_login_show_maybe_warning(!$display_ok, $user->display_name, $edit
 					, __("Make display name different from login name", 'limit-login-attempts'));
-		$nicename = limit_login_show_maybe_warning(!$nicename_ok, $user->user_nicename
+		$nicename = limit_login_show_maybe_warning(!$nicename_ok, $nicename_input, ''
 					, __("Make url name different from login name", 'limit-login-attempts'));
-		$nickname = limit_login_show_maybe_warning(!$nickname_ok, $user->nickname
+		$nickname = limit_login_show_maybe_warning(!$nickname_ok, $user->nickname, $edit
 					, __("Make nickname different from login name", 'limit-login-attempts'));
 
-		/* http://192.168.1.9/webb/www.kostdoktorn.se/wordpress-2.8.4/wp-admin/user-edit.php?user_id=2&wp_http_referer=%2Fwebb%2Fwww.kostdoktorn.se%2Fwordpress-2.8.4%2Fwp-admin%2Fusers.php *******/
-
-		$r .= '<tr><td>' . $login . '</td>'
+		$r .= '<tr><td>' . $edit_link . $login . '</a></td>'
 			. '<td>' . $role . '</td>'
 			. '<td>' . $display . '</td>'
 			. '<td>' . $nicename . '</td>'
@@ -1103,13 +1097,13 @@ function limit_login_show_users() {
 			. '</tr>';
 	}
 
-	if ($r == '') {
-		echo(sprintf('<tr><td>%s</tr></td>'
-					 , __("Privileged usernames, display names, url names and nicknames ok", 'limit-login-attempts')));
-		return;
+
+	if (!$bad_count) {
+		echo(sprintf('<p><i>%s</i></p>'
+					 , __("Privileged usernames, display names, url names and nicknames are ok", 'limit-login-attempts')));
 	}
 
-	echo('<tr>' 
+	echo('<table class="widefat"><thead><tr class="thead">' 
 		 . '<th scope="col">'
 		 . __("User Login", 'limit-login-attempts')
 		 . '</th><th scope="col">'
@@ -1118,14 +1112,73 @@ function limit_login_show_users() {
 		 . __('Display Name', 'limit-login-attempts')
 		 . '</th><th scope="col">'
 		 . __('URL Name <small>("nicename")</small>', 'limit-login-attempts')
+		 . ' <a href="http://wordpress.org/extend/plugins/limit-login-attempts/faq/"'
+		 . ' title="' . __('What is this?', 'limit-login-attempts') . '">?</a>'
 		 . '</th><th scope="col">'
 		 . __('Nickname', 'limit-login-attempts')
-		 . '</th></tr>'
-		 . $r);
+		 . '</th></tr></thead>'
+		 . $r
+		 . '</table>');
 }
 
 
-function limit_login_show_maybe_warning($is_warn, $name, $title) {
+function limit_login_nicenames_from_post() {
+	$match = 'nicename-'; /* followed by user id */
+	$changed = '';
+
+	foreach ($_POST as $name => $val) {
+		if (strncmp($name, $match, strlen($match)))
+			continue;
+
+		/* Get user ID */
+		$a = explode('-', $name);
+		$id = intval($a[1]);
+		if (!$id)
+			continue;
+
+		/*
+		 * To be safe we use the same functions as when an original nicename is
+		 * constructed from user login name.
+		 */
+		$nicename = sanitize_title(sanitize_user($val, true));
+
+		if (empty($nicename))
+			continue;
+
+		/* Check against original user */
+		$user = get_userdata($id);
+
+		if (!$user)
+			continue;
+
+		/* nicename changed? */
+		if (!strcmp($nicename, $user->user_nicename))
+			continue;
+
+		$userdata = array('ID' => $id, 'user_nicename' => $nicename);
+		wp_update_user($userdata);
+
+		wp_cache_delete($user->user_nicename, 'userlugs');
+
+		if (!empty($changed))
+			$changed .= ', ';
+		$changed .= "'{$user->user_login}' nicename {$user->user_nicename} => $nicename";
+	}
+
+	if (!empty($changed)) {
+		echo '<div id="message" class="updated fade"><p>'
+			. __('URL names changed', 'limit-login-attempts')
+			. '<br />' . $changed
+			. '</p></div>';
+	} else {
+		echo '<div id="message" class="updated fade"><p>'
+			. __('No names changed', 'limit-login-attempts')
+			. '</p></div>';
+	}
+}
+
+
+function limit_login_show_maybe_warning($is_warn, $name, $edit_url, $title) {
 	static $alt, $bad_img_url;
 
 	if (!$is_warn) {
@@ -1145,8 +1198,32 @@ function limit_login_show_maybe_warning($is_warn, $name, $title) {
 		$bad_img_url = $plugin_url . '/limit-login-attempts/images/icon_bad.gif';
 	}
 
-	return sprintf('<img src="%s" alt="%s" title="%s" />%s'
-				   , $bad_img_url, $alt, $title, $name);
+	$s = "<img src=\"$bad_img_url\" alt=\"$alt\" title=\"$title\" />";
+	if (!empty($edit_url))
+		$s .= "<a href=\"$edit_url\" title=\"$title\">";
+	$s .= $name;
+	if (!empty($edit_url))
+		$s .= '</a>';
+
+	return $s;
+}
+
+
+/* Count ip currently locked out from registering new users */
+function limit_login_count_reg_lockouts() {
+	$valid = limit_login_get_array('registrations_valid');
+	$regs = limit_login_get_array('registrations');
+	$allowed = limit_login_option('register_allowed');
+
+	$now = time();
+	$total = 0;
+
+	foreach ($valid as $ip => $until) {
+		if ($until >= $now && isset($regs[$ip]) && $regs[$ip] >= $allowed)
+			$total++;
+	}
+
+	return $total;
 }
 
 
@@ -1230,12 +1307,29 @@ function limit_login_option_page()	{
 			. __('Reset lockout count', 'limit-login-attempts')
 			. '</p></div>';
 	}
-		
+
 	/* Should we restore current lockouts? */
 	if (isset($_POST['reset_current'])) {
 		update_option('limit_login_lockouts', array());
 		echo '<div id="message" class="updated fade"><p>'
 			. __('Cleared current lockouts', 'limit-login-attempts')
+			. '</p></div>';
+	}
+		
+	/* Should we reset registration counter? */
+	if (isset($_POST['reset_reg_total'])) {
+		update_option('limit_login_reg_lockouts_total', 0);
+		echo '<div id="message" class="updated fade"><p>'
+			. __('Reset registration lockout count', 'limit-login-attempts')
+			. '</p></div>';
+	}
+
+	/* Should we restore current registration lockouts? */
+	if (isset($_POST['reset_reg_current'])) {
+		update_option('limit_login_registrations', array());
+		update_option('limit_login_registrations_valid', array());
+		echo '<div id="message" class="updated fade"><p>'
+			. __('Cleared current registration lockouts', 'limit-login-attempts')
 			. '</p></div>';
 	}
 
@@ -1249,9 +1343,15 @@ function limit_login_option_page()	{
 			. '</p></div>';
 	}
 
+	/* Should we change user nicenames?? */
+	if (isset($_POST['users_submit'])) {
+		limit_login_nicenames_from_post();
+	}
+
 	$lockouts_total = get_option('limit_login_lockouts_total', 0);
-	$lockouts = get_option('limit_login_lockouts');
-	$lockouts_now = is_array($lockouts) ? count($lockouts) : 0;
+	$lockouts_now = count(limit_login_get_array('lockouts'));
+	$reg_lockouts_total = get_option('limit_login_reg_lockouts_total', 0);
+	$reg_lockouts_now = limit_login_count_reg_lockouts();
 
 	if (!limit_login_support_cookie_option()) {
 		$cookies_disabled = ' DISABLED ';
@@ -1305,6 +1405,17 @@ function limit_login_option_page()	{
 	$register_enforce_yes = limit_login_option('register_enforce') ? ' checked ' : '';
 
 	?>
+    <script type="text/javascript">
+jQuery(document).ready(function(){
+   jQuery("#warning_checkbox").click(function(event){
+	   if (jQuery(this).attr("checked")) {
+		   jQuery("input.warning-disabled").removeAttr("disabled");
+	   } else {
+		   jQuery("input.warning-disabled").attr("disabled", "disabled");
+	   }
+   });
+});
+    </script>
 	<style type="text/css" media="screen">
 		table.limit-login {
 			width: 100%;
@@ -1318,7 +1429,7 @@ function limit_login_option_page()	{
 		}
 		.limit-login td {
 			font-size: 11px;
-			line-height: 11px;
+			line-height: 12px;
 			padding: 1px 5px 1px 0;
 		}
 		td.limit-login-ip {
@@ -1350,6 +1461,24 @@ function limit_login_option_page()	{
 			<td>
 			  <input name="reset_current" value="<?php echo __('Restore Lockouts','limit-login-attempts'); ?>" type="submit" />
 			  <?php echo sprintf(__('%d IP is currently blocked from trying to log in','limit-login-attempts'), $lockouts_now); ?> 
+			</td>
+		  </tr>
+		  <?php } ?>
+		  <?php if ($reg_lockouts_total > 0) { ?>
+		  <tr>
+			<th scope="row" valign="top"><?php echo __('Total registration lockouts','limit-login-attempts'); ?></th>
+			<td>
+			  <input name="reset_reg_total" value="<?php echo __('Reset Counter','limit-login-attempts'); ?>" type="submit" />
+			  <?php echo sprintf(__ngettext('%d registration lockout since last reset', '%d registration lockouts since last reset', $reg_lockouts_total, 'limit-login-attempts'), $reg_lockouts_total); ?>
+			</td>
+		  </tr>
+		  <?php } ?>
+		  <?php if ($reg_lockouts_now > 0) { ?>
+		  <tr>
+			<th scope="row" valign="top"><?php echo __('Active registration lockouts','limit-login-attempts'); ?></th>
+			<td>
+			  <input name="reset_reg_current" value="<?php echo __('Restore Lockouts','limit-login-attempts'); ?>" type="submit" />
+			  <?php echo sprintf(__('%d IP is currently blocked from registering new users','limit-login-attempts'), $reg_lockouts_now); ?> 
 			</td>
 		  </tr>
 		  <?php } ?>
@@ -1411,7 +1540,7 @@ function limit_login_option_page()	{
 		  <tr>
 			<th scope="row" valign="top"><?php echo __('New user registration','limit-login-attempts'); ?></th>
 			<td>
-			  <input type="checkbox" name="register_enforce" <?php echo $register_enforce_yes; ?> value="1" /> <?php echo __('Only allow','limit-login-attempts'); ?> <input type="text" size="3" maxlength="4" value="<?php echo(limit_login_option('register_allowed')); ?>" name="register_allowed" /> <?php echo __('user registrations every','limit-login-attempts'); ?> <input type="text" size="3" maxlength="4" value="<?php echo(limit_login_option('register_duration')/3600); ?>" name="register_duration" /> <?php echo __('hours','limit-login-attempts'); ?>
+			  <input type="checkbox" name="register_enforce" <?php echo $register_enforce_yes; ?> value="1" /> <?php echo __('Only allow','limit-login-attempts'); ?> <input type="text" size="3" maxlength="4" value="<?php echo(limit_login_option('register_allowed')); ?>" name="register_allowed" /> <?php echo __('new user registrations every','limit-login-attempts'); ?> <input type="text" size="3" maxlength="4" value="<?php echo(limit_login_option('register_duration')/3600); ?>" name="register_duration" /> <?php echo __('hours','limit-login-attempts'); ?>
 			</td>
 		  </tr>
 		</table>
@@ -1420,9 +1549,14 @@ function limit_login_option_page()	{
 		</p>
 	  </form>
 	  <h3><?php echo __('Privileged users','limit-login-attempts'); ?></h3>
-	  <table class="limit-login">
+	  <form action="options-general.php?page=limit-login-attempts" method="post" name="form_users">
+		<?php wp_nonce_field('limit-login-attempts-options'); ?>
+
 		<?php limit_login_show_users(); ?>
-	  </table>
+		<div class="tablenav actions">
+		  <input type="checkbox" id="warning_checkbox" name="warning_danger" value="1" name="users_warning_check" /> <?php echo sprintf(__('I <a href="%s">understand</a> the problems involved', 'limit-login-attempts'), 'http://wordpress.org/extend/plugins/limit-login-attempts/faq/'); ?></a> <input type="submit" class="button-secondary action warning-disabled" value="<?php echo __('Change Names', 'limit-login-attempts'); ?>" name="users_submit" disabled="true" />
+		</div>
+	  </form>
 	  <?php
 		$log = limit_login_get_array('logged');
 

@@ -5,7 +5,7 @@ Requires at least: 2.5
 Tested up to: 2.8.4
 Stable tag: 1.4.1
 
-Limit rate of login attempts, including by way of cookies, for each IP. (BETA VERSION)
+Limit rate of login attempts, including by way of cookies, for each IP. Protects user login names from discovery. (BETA VERSION)
 
 == Description ==
 
@@ -17,15 +17,19 @@ By default WordPress allows unlimited login attempts either through the login pa
 
 Limit Login Attempts blocks an Internet address from making further attempts after a specified limit on retries is reached, making a brute-force attack difficult or impossible.
 
+Limit Login Attempts can also help you protect user login names from discovery. This includes (Wordpress 2.6.5+) optional restrictions on password reset attempts for privileged users and rate limit on new user registrations.
+
 Features
 
 * Limit the number of retry attempts when logging in (for each IP). Fully customizable
 * Informs user about remaining retries or lockout time on login page
 * Optional logging, optional email notification
+* (WordPress 2.7+) Handles attempts to log in using auth cookies
+* Helps protect user login names from discovery
+* (Wordpress 2.6.5+) Optional restrictions on password reset attempts for privileged users
+* Optional rate limit on new user registration
+* Allows modification of privileged users Author URL name ("nicename")
 * Handles server behind reverse proxy
-* (WordPress 2.7+) Also handles attempts to log in using auth cookies
-* Helps hide user login names
-* Optional restriction on password reset attempts for privileged users, and rate limit new user registration
 
 Translations: Bulgarian, Catalan, Czech, German, Norwegian, Persian, Romanian, Russian, Spanish, Swedish, Turkish
 
@@ -38,13 +42,6 @@ Plugin uses standard actions and filters only.
 3. Customize the settings from the options page, if desired. If your server is located behind a reverse proxy make sure to change this setting.
 
 If you have any questions or problems please make a post here: http://wordpress.org/tags/limit-login-attempts
-
-== Todo ==
-
-* There is no built in way to change user login name or nicename -- split to separate plugin?
-* Translations
-* Test vs. 2.5
-* Look through readme.txt
 
 == Frequently Asked Questions ==
 
@@ -68,11 +65,11 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 
 = Why the privileged users list? Why are some names marked? =
 
-These are the various names WordPress has for each user. To increase security the login name should not be the same as any of the others.
+These are the various names WordPress has for each user. To increase security the login name should not be the same as any of the others as they can be discovered in various ways.
 
 = What is URL Name / "nicename"? =
 
-"Nicename" is what WordPress calls it (internally). It is constructed directly from the login name and is used in the public author url (among other things).
+"Nicename" is what WordPress calls it (internally). It is constructed directly from the login name and is used in the public author archive url, default comment template (as a comment class) and default post template (as a post class). This means that if you change it the old author archive url will no longer work.
 
 = I disabled password reset for administrators and forgot my password, what do I do? =
 
@@ -84,14 +81,22 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 
 1. Loginscreen after failed login with retries remaining
 2. Loginscreen during lockout
-3. Administration interface in WordPress 2.7
-4. Administration interface in WordPress 2.5
+3. New user registration screen during lockout
+4. Administration interface in WordPress 2.8.4
+5. Administration interface in WordPress 2.5
+
+== Todo ==
+
+* Translations
+* Test cookies
+* Look through readme.txt again
+* Links to faq/nicename
 
 == Version History ==
 
 * Version 2.0beta3
 	* Checkpoint release for translations
-	* Added basic functionality to edit user names
+	* Added basic functionality to edit user nicenames
 	* Added Wordpress version dependency for password reset functionality
 	* Code clean-ups
 * Version 2.0beta2
