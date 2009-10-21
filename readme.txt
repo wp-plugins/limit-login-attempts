@@ -2,7 +2,7 @@
 Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.5
-Tested up to: 2.8.4
+Tested up to: 2.8.5
 Stable tag: 1.4.1
 
 Limit rate of login attempts, including by way of cookies, for each IP.
