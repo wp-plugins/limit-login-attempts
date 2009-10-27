@@ -59,7 +59,8 @@ function limit_login_v2x_options_exists() {
 function limit_login_admin_menu() {
 	add_options_page('Limit Login Attempts', 'Limit Login Attempts', 8, 'limit-login-attempts', 'limit_login_option_page');
 
-	if ( $_GET['page'] == "limit-login-attempts" ) {	
+	if ( isset($_GET['page'])
+		 && 	$_GET['page'] == "limit-login-attempts" ) {	
 		wp_enqueue_script('jquery');
 	}
 }

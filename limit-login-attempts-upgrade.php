@@ -32,7 +32,7 @@ function limit_login_v1x_options_exists() {
 	global $limit_login_options;
 
 	foreach ($limit_login_options as $name => $value) {
-		$a = get_option('limit_login_' . $name)
+		$a = get_option('limit_login_' . $name);
 
 
 		return true;
