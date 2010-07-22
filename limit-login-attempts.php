@@ -5,9 +5,9 @@
   Description: Limit rate of login attempts, including by way of cookies, for each IP.
   Author: Johan Eenfeldt
   Author URI: http://devel.kostdoktorn.se
-  Version: 1.4.1
+  Version: 1.5
 
-  Copyright 2008, 2009 Johan Eenfeldt
+  Copyright 2008, 2009, 2010 Johan Eenfeldt
 
   Thanks to Michael Skerwiderski for reverse proxy handling.
 
@@ -97,7 +97,7 @@ limit_login_setup();
 /* Get options and setup filters & actions */
 function limit_login_setup() {
 	load_plugin_textdomain('limit-login-attempts'
-						   , PLUGINDIR.'/'.dirname(plugin_basename(__FILE__)));
+			       , PLUGINDIR.'/'.dirname(plugin_basename(__FILE__)));
 
 	limit_login_setup_options();
 
@@ -109,10 +109,17 @@ function limit_login_setup() {
 		add_action('auth_cookie_bad_username', 'limit_login_failed_cookie');
 	}
 	add_filter('wp_authenticate_user', 'limit_login_wp_authenticate_user', 99999, 2);
-	add_action('wp_authenticate', 'limit_login_track_credentials', 10, 2);
+	add_filter('shake_error_codes', 'limit_login_failure_shake');
 	add_action('login_head', 'limit_login_add_error_message');
 	add_action('login_errors', 'limit_login_fixup_error_messages');
 	add_action('admin_menu', 'limit_login_admin_menu');
+
+	/*
+	 * This action should really be changed to the 'authenticate' filter as
+	 * it will probably be deprecated. That is however only available in
+	 * later versions of WP.
+	 */
+	add_action('wp_authenticate', 'limit_login_track_credentials', 10, 2);
 }
 
 
@@ -182,8 +189,16 @@ function limit_login_wp_authenticate_user($user, $password) {
 	$limit_login_my_error_shown = true;
 
 	$error = new WP_Error();
+	// This error should be the same as in "shake it" filter below
 	$error->add('too_many_retries', limit_login_error_msg());
 	return $error;
+}
+
+
+/* Filter: add this failure to login page "Shake it!" */
+function limit_login_failure_shake($error_codes) {
+	$error_codes[] = 'too_many_retries';
+	return $error_codes;
 }
 
 
@@ -380,18 +395,29 @@ function limit_login_notify_email($user) {
 		$when = sprintf(__ngettext('%d minute', '%d minutes', $time, 'limit-login-attempts'), $time);
 	}
 
+	if (function_exists('get_site_option') && function_exists('is_multisite') && is_multisite()) {
+		$blogname = get_site_option('site_name');
+	} else {
+		$blogname = get_option('blogname');
+	}
 	$subject = sprintf(__("[%s] Too many failed login attempts", 'limit-login-attempts')
-					   , get_option('blogname'));
+			   , $blogname);
 	$message = sprintf(__("%d failed login attempts (%d lockout(s)) from IP: %s"
-						  , 'limit-login-attempts') . "\r\n\r\n"
-					   , $count, $lockouts, $ip);
+			      , 'limit-login-attempts') . "\r\n\r\n"
+			   , $count, $lockouts, $ip);
 	if ($user != '') {
 		$message .= sprintf(__("Last user attempted: %s", 'limit-login-attempts')
-							 . "\r\n\r\n" , $user);
+				    . "\r\n\r\n" , $user);
 	}
 	$message .= sprintf(__("IP was blocked for %s", 'limit-login-attempts'), $when);
 
-	@wp_mail(get_option('admin_email'), $subject, $message);
+	if (function_exists('get_site_option') && function_exists('is_multisite') && is_multisite()) {
+		$admin_email = get_site_option('admin_email');
+	} else {
+		$admin_email = get_option('admin_email');
+	}
+
+	@wp_mail($admin_email, $subject, $message);
 }
 
 
@@ -532,8 +558,9 @@ function limit_login_fixup_error_messages($content) {
 	}
 
 	/*
-	 * We want to filter the messages 'Invalid username' and 'Invalid password'
-	 * as that is an information leak regarding user account names.
+	 * We want to filter the messages 'Invalid username' and
+	 * 'Invalid password' as that is an information leak regarding user
+	 * account names (prior to WP 2.9?).
 	 *
 	 * Also, if more than one error message, put an extra <br /> tag between
 	 * them.
