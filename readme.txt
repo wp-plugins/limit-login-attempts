@@ -2,8 +2,8 @@
 Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.5
-Tested up to: 2.8
-Stable tag: 1.5
+Tested up to: 3.0.1
+Stable tag: 1.5.1
 
 Limit rate of login attempts, including by way of cookies, for each IP. Protects user login names from discovery. (BETA VERSION)
 
