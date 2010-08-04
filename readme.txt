@@ -2,8 +2,8 @@
 Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.5
-Tested up to: 3.0
-Stable tag: 1.5
+Tested up to: 3.0.1
+Stable tag: 1.5.1
 
 Limit rate of login attempts, including by way of cookies, for each IP.
 
@@ -23,7 +23,7 @@ Features
 * Optional logging, optional email notification
 * Handles server behind reverse proxy
 
-Translations: Bulgarian, Catalan, Czech, Dutch, French, German, Hungarian, Norwegian, Persian, Romanian, Russian, Spanish, Swedish, Turkish
+Translations: Bulgarian, Catalan, Chinese (Traditional), Czech, Dutch, French, German, Hungarian, Norwegian, Persian, Romanian, Russian, Spanish, Swedish, Turkish
 
 Plugin uses standard actions and filters only.
 
@@ -62,41 +62,54 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 3. Administration interface in WordPress 2.7
 4. Administration interface in WordPress 2.5
 
-== Version History ==
+== Changelog ==
 
-* Version 1.5
-	* Tested against WordPress 3.0
-	* Handle 3.0 login page failure "shake"
-	* Basic multisite support (parts thanks to <erik@erikshosting.com>)
-	* Added Dutch translation, thanks to Bjorn Wijers <burobjorn@burobjorn.nl>
-	* Added Hungarian translation, thanks to Bálint Vereskuti <balint@vereskuti.info>
-	* Added French translation, thanks to oVa <ova13lastar@gmail.com>
-* Version 1.4.1
-	* Added Turkish translation, thanks to Yazan Canarkadas
-* Version 1.4
-	* Protect admin page update using wp_nonce
-	* Added Czech translation, thanks to Jakub Jedelsky
-* Version 1.3.2
-	* Added Bulgarian translation, thanks to Hristo Chakarov
-	* Added Norwegian translation, thanks to Rune Gulbrandsøy
-	* Added Spanish translation, thanks to Marcelo Pedra
-	* Added Persian translation, thanks to Mostafa Soufi
-	* Added Russian translation, thanks to Jack Leonid (http://studio-xl.com)
-* Version 1.3.1
-	* Added Catalan translation, thanks to Robert Buj
-	* Added Romanian translation, thanks to Robert Tudor
-* Version 1.3
-	* Support for getting the correct IP for clients while server is behind reverse proxy, thanks to Michael Skerwiderski
-	* Added German translation, thanks to Michael Skerwiderski
-* Version 1.2
-	* No longer replaces pluggable function when cookie handling active. Re-implemented using available actions and filters
-	* Filter error messages during login to avoid information leak regarding available usernames
-	* Do not show retries or lockout messages except for login (registration, lost password pages). No change in actual enforcement
-	* Slightly more aggressive in trimming old retries data
-* Version 1.1
-	* Added translation support
-	* Added Swedish translation
-	* During lockout, filter out all other login errors
-	* Minor cleanups
-* Version 1.0
-	* Initial version
+= 1.5.1 =
+* Further multisite & WPMU support (again thanks to <erik@erikshosting.com>)
+* Better error handling if option variables are damaged
+* Added Traditional Chinese translation, thanks to Denny Huang <bigexplorations@bigexplorations.com.tw>
+
+= 1.5 =
+* Tested against WordPress 3.0
+* Handle 3.0 login page failure "shake"
+* Basic multisite support (parts thanks to <erik@erikshosting.com>)
+* Added Dutch translation, thanks to Bjorn Wijers <burobjorn@burobjorn.nl>
+* Added Hungarian translation, thanks to Bálint Vereskuti <balint@vereskuti.info>
+* Added French translation, thanks to oVa <ova13lastar@gmail.com>
+
+= 1.4.1 =
+* Added Turkish translation, thanks to Yazan Canarkadas
+
+= 1.4 =
+* Protect admin page update using wp_nonce
+* Added Czech translation, thanks to Jakub Jedelsky
+
+= 1.3.2 =
+* Added Bulgarian translation, thanks to Hristo Chakarov
+* Added Norwegian translation, thanks to Rune Gulbrandsøy
+* Added Spanish translation, thanks to Marcelo Pedra
+* Added Persian translation, thanks to Mostafa Soufi
+* Added Russian translation, thanks to Jack Leonid (http://studio-xl.com)
+
+= 1.3.1 =
+* Added Catalan translation, thanks to Robert Buj
+* Added Romanian translation, thanks to Robert Tudor
+
+= 1.3 =
+* Support for getting the correct IP for clients while server is behind reverse proxy, thanks to Michael Skerwiderski
+* Added German translation, thanks to Michael Skerwiderski
+
+= 1.2 =
+* No longer replaces pluggable function when cookie handling active. Re-implemented using available actions and filters
+* Filter error messages during login to avoid information leak regarding available usernames
+* Do not show retries or lockout messages except for login (registration, lost password pages). No change in actual enforcement
+* Slightly more aggressive in trimming old retries data
+
+= 1.1 =
+* Added translation support
+* Added Swedish translation
+* During lockout, filter out all other login errors
+* Minor cleanups
+
+= 1.0 =
+* Initial version

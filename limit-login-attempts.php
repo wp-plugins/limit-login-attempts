@@ -5,7 +5,7 @@
   Description: Limit rate of login attempts, including by way of cookies, for each IP.
   Author: Johan Eenfeldt
   Author URI: http://devel.kostdoktorn.se
-  Version: 1.5
+  Version: 1.5.1
 
   Copyright 2008, 2009, 2010 Johan Eenfeldt
 
@@ -211,11 +211,6 @@ function limit_login_handle_cookies() {
 		return;
 	}
 
-	if (empty($_COOKIE[AUTH_COOKIE]) && empty($_COOKIE[SECURE_AUTH_COOKIE])
-		&& empty($_COOKIE[LOGGED_IN_COOKIE])) {
-		return;
-	}
-
 	wp_clear_auth_cookie();
 
 	if (!empty($_COOKIE[AUTH_COOKIE])) {
@@ -247,20 +242,21 @@ function limit_login_failed($arg) {
 
 	/* if currently locked-out, do not add to retries */
 	$lockouts = get_option('limit_login_lockouts');
-	if(is_array($lockouts) && isset($lockouts[$ip]) && time() < $lockouts[$ip]) {
-		return;
-	} elseif (!is_array($lockouts)) {
+	if (!is_array($lockouts)) {
 		$lockouts = array();
+	}
+	if(isset($lockouts[$ip]) && time() < $lockouts[$ip]) {
+		return;
 	}
 
 	/* Get the arrays with retries and retries-valid information */
 	$retries = get_option('limit_login_retries');
 	$valid = get_option('limit_login_retries_valid');
-	if ($retries === false) {
+	if (!is_array($retries)) {
 		$retries = array();
 		add_option('limit_login_retries', $retries, '', 'no');
 	}
-	if ($valid === false) {
+	if (!is_array($valid)) {
 		$valid = array();
 		add_option('limit_login_retries_valid', $valid, '', 'no');
 	}
@@ -274,55 +270,60 @@ function limit_login_failed($arg) {
 	$valid[$ip] = time() + limit_login_option('valid_duration');
 
 	/* lockout? */
-	if($retries[$ip] % limit_login_option('allowed_retries') == 0) {
-		global $limit_login_just_lockedout;
-
-		$limit_login_just_lockedout = true;
-
-		/* setup lockout, reset retries as needed */
-		$retries_long = limit_login_option('allowed_retries')
-			* limit_login_option('allowed_lockouts');
-		if ($retries[$ip] >= $retries_long) {
-			/* long lockout */
-			$lockouts[$ip] = time() + limit_login_option('long_duration');
-			unset($retries[$ip]);
-			unset($valid[$ip]);
-		} else {
-			/* normal lockout */
-			$lockouts[$ip] = time() + limit_login_option('lockout_duration');
-		}
-
-		/* try to find username which failed */
-		$user = '';
-		if (is_string($arg)) {
-			/* action: wp_login_failed */
-			$user = $arg;
-		} elseif (is_array($arg) && array_key_exists('username', $arg)) {
-			/* action: auth_cookie_bad_* */
-			$user = $arg['username'];
-		}
-
-		/* do housecleaning and save values */
-		limit_login_cleanup($retries, $lockouts, $valid);
-
-		/* do any notification */
-		limit_login_notify($user);
-
-		/* increase statistics */
-		$total = get_option('limit_login_lockouts_total');
-		if ($total === false) {
-			add_option('limit_login_lockouts_total', 1, '', 'no');
-		} else {
-			update_option('limit_login_lockouts_total', $total + 1);
-		}
-	} else {
-		/* not lockout (yet!), do housecleaning and save values */
+	if($retries[$ip] % limit_login_option('allowed_retries') != 0) {
+		/* 
+		 * Not lockout (yet!)
+		 * Do housecleaning (which also saves retry/valid values).
+		 */
 		limit_login_cleanup($retries, null, $valid);
+		return;
+	}
+
+	/* lockout! */
+
+	global $limit_login_just_lockedout;
+	$limit_login_just_lockedout = true;
+
+	/* setup lockout, reset retries as needed */
+	$retries_long = limit_login_option('allowed_retries')
+	    * limit_login_option('allowed_lockouts');
+	if ($retries[$ip] >= $retries_long) {
+	    /* long lockout */
+	    $lockouts[$ip] = time() + limit_login_option('long_duration');
+	    unset($retries[$ip]);
+	    unset($valid[$ip]);
+	} else {
+	    /* normal lockout */
+	    $lockouts[$ip] = time() + limit_login_option('lockout_duration');
+	}
+
+	/* try to find username which failed */
+	$user = '';
+	if (is_string($arg)) {
+	    /* action: wp_login_failed */
+	    $user = $arg;
+	} elseif (is_array($arg) && array_key_exists('username', $arg)) {
+	    /* action: auth_cookie_bad_* */
+	    $user = $arg['username'];
+	}
+
+	/* do housecleaning and save values */
+	limit_login_cleanup($retries, $lockouts, $valid);
+
+	/* do any notification */
+	limit_login_notify($user);
+
+	/* increase statistics */
+	$total = get_option('limit_login_lockouts_total');
+	if ($total === false || !is_numeric($total)) {
+	    add_option('limit_login_lockouts_total', 1, '', 'no');
+	} else {
+	    update_option('limit_login_lockouts_total', $total + 1);
 	}
 }
 
 
-/* Clean up any old lockouts and old retries */
+/* Clean up old lockouts and retries, and save supplied arrays */
 function limit_login_cleanup($retries = null, $lockouts = null, $valid = null) {
 	$now = time();
 	$lockouts = !is_null($lockouts) ? $lockouts : get_option('limit_login_lockouts');
@@ -363,11 +364,17 @@ function limit_login_cleanup($retries = null, $lockouts = null, $valid = null) {
 }
 
 
+/* Is this WP Multisite? */
+function is_limit_login_multisite() {
+	return function_exists('get_site_option') && function_exists('is_multisite') && is_multisite();
+}
+
+
 /* Email notification of lockout to admin (if configured) */
 function limit_login_notify_email($user) {
 	$ip = limit_login_get_address();
-	$retries = get_option('limit_login_retries');
 
+	$retries = get_option('limit_login_retries');
 	if (!is_array($retries)) {
 		$retries = array();
 	}
@@ -395,11 +402,8 @@ function limit_login_notify_email($user) {
 		$when = sprintf(__ngettext('%d minute', '%d minutes', $time, 'limit-login-attempts'), $time);
 	}
 
-	if (function_exists('get_site_option') && function_exists('is_multisite') && is_multisite()) {
-		$blogname = get_site_option('site_name');
-	} else {
-		$blogname = get_option('blogname');
-	}
+	$blogname = is_limit_login_multisite() ? get_site_option('site_name') : get_option('blogname');	
+
 	$subject = sprintf(__("[%s] Too many failed login attempts", 'limit-login-attempts')
 			   , $blogname);
 	$message = sprintf(__("%d failed login attempts (%d lockout(s)) from IP: %s"
@@ -411,11 +415,7 @@ function limit_login_notify_email($user) {
 	}
 	$message .= sprintf(__("IP was blocked for %s", 'limit-login-attempts'), $when);
 
-	if (function_exists('get_site_option') && function_exists('is_multisite') && is_multisite()) {
-		$admin_email = get_site_option('admin_email');
-	} else {
-		$admin_email = get_option('admin_email');
-	}
+	$admin_email = is_limit_login_multisite() ? get_site_option('admin_email') : get_option('admin_email');
 
 	@wp_mail($admin_email, $subject, $message);
 }
@@ -425,7 +425,7 @@ function limit_login_notify_email($user) {
 function limit_login_notify_log($user) {
 	$log = get_option('limit_login_logged');
 	$ip = limit_login_get_address();
-	if ($log === false) {
+	if (!is_array($log)) {
 		$log = array($ip => array($user => 1));
 		add_option('limit_login_logged', $log, '', 'no'); /* no autoload */
 	} else {
@@ -730,7 +730,22 @@ function limit_login_sanitize_variables() {
 
 /* Add admin options page */
 function limit_login_admin_menu() {
-	add_options_page('Limit Login Attempts', 'Limit Login Attempts', 8, 'limit-login-attempts', 'limit_login_option_page');
+	global $wp_version;
+
+	// Modern WP?
+	if (version_compare($wp_version, '3.0', '>=')) {
+	    add_options_page('Limit Login Attempts', 'Limit Login Attempts', 'manage_options', 'limit-login-attempts', 'limit_login_option_page');
+	    return;
+	}
+
+	// Older WPMU?
+	if (function_exists("get_current_site")) {
+	    add_submenu_page('wpmu-admin.php', 'Limit Login Attempts', 'Limit Login Attempts', 9, 'limit-login-attempts', 'limit_login_option_page');
+	    return;
+	}
+
+	// Older WP
+	add_options_page('Limit Login Attempts', 'Limit Login Attempts', 9, 'limit-login-attempts', 'limit_login_option_page');
 }
 
 
