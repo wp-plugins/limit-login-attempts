@@ -1,9 +1,9 @@
 <?php
 /*
-  Limit Login Attempts: upgrade functions
-  Version 2.0beta5
+  Limit Login Attempts: plugin upgrade functions
+  Version 2.0beta4
 
-  Copyright 2008, 2009 Johan Eenfeldt
+  Copyright 2009, 2010 Johan Eenfeldt
 
   Licenced under the GNU GPL:
 
@@ -22,83 +22,107 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/* Die if included directly (without any PHP warnings, etc) */
+if (!defined('ABSPATH'))
+    die();
 
 /*
  * Functions related to plugin upgrade
  */
 
-/* Check if 1.x style options exists */
-function limit_login_v1x_options_exists() {
-	global $limit_login_options;
+/* Upgrade options from previous version if necessary */
+function limit_login_upgrade_if_necessary() {
+	/* Upgrade from version 1 options? */
+	if (limit_login_options_exists() || !limit_login_v1_options_exists())
+		return;
 
-	foreach ($limit_login_options as $name => $value) {
+	// todo: upgrade statistics!
+	limit_login_v1_upgrade_options();
+	limit_login_v1_delete_options();
+}
+
+
+/*
+ * Plugin options v1 => v2
+ */
+
+/*
+ * Options available in plugin version 1.x 
+ *
+ * This file is included in function context, so the variable is only "global"
+ * to this file.
+ */
+$limit_login_options_v1 =
+	array('client_type', 'allowed_retries', 'lockout_duration'
+	      , 'allowed_lockouts', 'long_duration', 'valid_duration', 'cookies'
+	      , 'lockout_notify', 'notify_email_after');
+
+/* Check if v1 style options exists */
+function limit_login_v1_options_exists() {
+	global $limit_login_options_v1;
+
+	foreach ($limit_login_options_v1 as $name => $value) {
 		$a = get_option('limit_login_' . $name);
 
-
-		return true;
+		if ($a !== false)
+			return true;
 	}
 
 	return false;
 }
 
-/* Get 1.x style options */
-function limit_login_v1x_setup_options() {
-	global $limit_login_options;
 
-	foreach ($limit_login_options as $name => $value) {
+/* Get stored v1 style options */
+function limit_login_v1_get_options() {
+	global $limit_login_options_v1;
+
+	$options = array();
+
+	foreach ($limit_login_options_1 as $name => $value) {
 		$a = get_option('limit_login_' . $name);
 
 		if ($a === false)
 			continue;
 
-		$limit_login_options[$name] = limit_login_cast_option($a);
+		$options[$name] = $a;
+	}
+
+	return $options;
+}
+
+
+/*
+ * Upgrade from old v1 style options (and store modified options)
+ * 
+ * Note that startup will have populated $limit_login_options with default
+ * values.
+ */
+function limit_login_v1_upgrade_options() {
+	global $limit_login_options;
+
+	$old_options = limit_login_v1_get_options();
+	if (empty($old_options))
+		return;
+
+	foreach($limit_login_options AS $name => $value) {
+		if (!isset($old_options[$name]))
+			continue;
+		$limit_login_options[$name] = $old_options[$name];
 	}
 
 	limit_login_sanitize_options();
+	limit_login_update_options();
 }
 
-/* Delete 1.x style options */
-function limit_login_v1x_delete_options() {
-	global $limit_login_options;
 
-	foreach ($limit_login_options as $name => $value) {
+/* Delete v1 style stored options */
+function limit_login_v1_delete_options() {
+	global $limit_login_options_v1;
+
+	foreach ($limit_login_options_v1 as $name => $value) {
 		$option_name = 'limit_login_' . $name;
 		if (get_option($option_name) !== false)
 			delete_option($option_name);
 	}
-}
-
-/*  */
-function limit_login_update_warning() {
-	if (limit_login_v2x_options_exists() || !limit_login_v1x_options_exists())
-		return false;
-
-	/* Check if options differ from default */
-	global $limit_login_options;
-
-	$different = false;
-
-	foreach ($limit_login_options as $name => $value) {
-		$a = get_option('limit_login_' . $name);
-
-		if ($a === false)
-			continue;
-
-		if ($limit_login_options[$name] == limit_login_cast_option($a))
-			continue;
-
-		$different = true;
-		break;
-	}
-
-	/* 
-	 * If old style options exists but are all default values we can delete
-	 * them. Even if user downgrades to 1.x version of plugin the same option
-	 * values will be used;
-	 */
-	if (!$different)
-		limit_login_v1x_delete_options();
-
-	return $different;
 }
 ?>

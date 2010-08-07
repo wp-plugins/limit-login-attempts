@@ -1,9 +1,9 @@
 <?php
 /*
   Limit Login Attempts: registration enforcement functions
-  Version 2.0beta5
+  Version 2.0beta4
 
-  Copyright 2008, 2009 Johan Eenfeldt
+  Copyright 2009, 2010 Johan Eenfeldt
 
   Licenced under the GNU GPL:
 
@@ -22,7 +22,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/* Die if included directly (without any PHP warnings, etc) */
+if (!defined('ABSPATH'))
+    die();
 
+/*
+ * Functions start here
+ */
 
 /* Check if it is ok to register new user */
 function is_limit_login_reg_ok() {
@@ -36,33 +42,35 @@ function is_limit_login_reg_ok() {
 	$valid = limit_login_get_array('registrations_valid');
 	$regs = limit_login_get_array('registrations');
 	$allowed = limit_login_option('register_allowed');
-	return (!limit_login_check_time($valid, $ip)
-			|| !isset($regs[$ip]) || $regs[$ip] < $allowed);
+	return (!limit_login_check_ip($valid, $ip)
+		|| !isset($regs[$ip]) || $regs[$ip] < $allowed);
 }
 
 
 /* Clean up any old registration attempts and save arrays */
-function limit_login_reg_cleanup() {
+function limit_login_cleanup_registrations() {
 	$valid = limit_login_get_array('registrations_valid');
 	$regs = limit_login_get_array('registrations');
-	if (!empty($valid) && !empty($regs)) {
-		foreach ($valid as $ip => $until) {
-			if ($until < $now) {
-				unset($valid[$ip]);
-				unset($regs[$ip]);
-			}
-		}
 
-		/* go through registrations directly, if for some reason they've gone out of sync */
-		foreach ($regs as $ip => $reg) {
-			if (!isset($valid[$ip])) {
-				unset($regs[$ip]);
-			}
-		}
+	if (empty($valid) && empty($regs))
+		return;
 
-		limit_login_save_array('registrations', $regs);
-		limit_login_save_array('registrations_valid', $valid);
+	foreach ($valid as $ip => $until) {
+		if ($until < $now) {
+			unset($valid[$ip]);
+			unset($regs[$ip]);
+		}
 	}
+
+	/* go through registrations directly, if for some reason they've gone out of sync */
+	foreach ($regs as $ip => $reg) {
+		if (!isset($valid[$ip])) {
+			unset($regs[$ip]);
+		}
+	}
+
+	limit_login_save_array('registrations_valid', $valid);
+	limit_login_save_array('registrations', $regs);
 }
 
 
@@ -201,5 +209,4 @@ function limit_login_add_reg_error_message() {
 		$limit_login_my_error_shown = true;
 	}
 }
-
 ?>

@@ -1,9 +1,9 @@
 <?php
 /*
   Limit Login Attempts: admin functions
-  Version 2.0beta5
+  Version 2.0beta4
 
-  Copyright 2008, 2009 Johan Eenfeldt
+  Copyright 2009, 2010 Johan Eenfeldt
 
   Licenced under the GNU GPL:
 
@@ -22,11 +22,27 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-define('LIMIT_LOGIN_OPTION_PAGE', 'options-general.php?page=limit-login-attempts');
+/* Die if included directly (without any PHP warnings, etc) */
+if (!defined('ABSPATH'))
+    die();
 
-/* Check if we need to warn about upgrading */
-if (!limit_login_v2x_options_exists()) {
-}
+/*
+ * Variables
+ *
+ * This file is included in function context. This means that these variables
+ * are "global" only to this file unless defined with $GLOBALS.
+ */
+
+/* Options page name */
+$limit_login_option_page = admin_url('options-general.php?page=limit-login-attempts');
+
+/* Level of the different roles. Used for descriptive purposes only */
+$limit_login_level_role =
+	array(0 => __('Subscriber','limit-login-attempts')
+	      , 1 => __('Contributor','limit-login-attempts')
+	      , 2 => __('Author','limit-login-attempts')
+	      , 7 => __('Editor','limit-login-attempts')
+	      , 10 => __('Administrator','limit-login-attempts'));
 
 /* Add settings to plugin action links */
 function limit_login_filter_plugin_actions($links, $file) {
@@ -48,13 +64,6 @@ function limit_login_filter_plugin_actions($links, $file) {
  * Admin functions
  */
 
-/* Check if 2.x style options exists */
-function limit_login_v2x_options_exists() {
-	return !(get_option('limit_login_options') === false);
-}
-
-
-
 /* Add admin options page */
 function limit_login_admin_menu() {
 	add_options_page('Limit Login Attempts', 'Limit Login Attempts', 8, 'limit-login-attempts', 'limit_login_option_page');
@@ -66,7 +75,7 @@ function limit_login_admin_menu() {
 }
 
 
-/* Make a guess if we are behind a proxy or not */
+/* Are we behind a proxy or not? Make a guess! */
 function limit_login_guess_proxy() {
 	return isset($_SERVER[LIMIT_LOGIN_PROXY_ADDR])
 		? LIMIT_LOGIN_PROXY_ADDR : LIMIT_LOGIN_DIRECT_ADDR;
@@ -232,7 +241,8 @@ function limit_login_show_maybe_warning($is_warn, $name, $edit_url, $title) {
 }
 
 
-/* Update user nicenames from _POST values. Dangerous stuff! Make sure to check
+/*
+ * Update user nicenames from _POST values. Dangerous stuff! Make sure to check
  * privileges and security before calling function.
  */
 function limit_login_nicenames_from_post() {
@@ -321,48 +331,8 @@ function limit_login_select_level($current) {
 }
 
 
-/* Get options from $_POST[] and update global options variable */
-function limit_login_get_options_from_post() {
-	global $limit_login_options;
-
-	$option_multiple =
-		array('lockout_duration' => 60, 'valid_duration' => 3600
-			  , 'long_duration' => 3600, 'register_duration' => 3600);
-
-	foreach ($limit_login_options as $name => $oldvalue) {
-		if (is_bool($oldvalue)) {
-			$value = isset($_POST[$name]) && $_POST[$name] == '1';
-		} else {
-			if (!isset($_POST[$name])) {
-				continue;
-			}
-
-			$value = $_POST[$name];
-			if (is_numeric($oldvalue)) {
-				$value = intval($value);
-			}
-			if (array_key_exists($name, $option_multiple)) {
-				$value = $value * $option_multiple[$name];
-			}
-		}
-
-		$limit_login_options[$name] = $value;
-	}
-
-	/* Special handling for lockout_notify */
-	$v = array();
-	if (isset($_POST['lockout_notify_log'])) {
-		$v[] = 'log';
-	}
-	if (isset($_POST['lockout_notify_email'])) {
-		$v[] = 'email';
-	}
-	$limit_login_options['lockout_notify'] = implode(',', $v);
-}
-
-
 /* Actual admin page */
-function limit_login_option_page()	{	
+function limit_login_option_page() {
 	limit_login_cleanup();
 
 	if (!current_user_can('manage_options')) {
@@ -418,8 +388,6 @@ function limit_login_option_page()	{
 	/* Should we update options? */
 	if (isset($_POST['update_options'])) {
 		limit_login_get_options_from_post();
-		limit_login_sanitize_options();
-		limit_login_update_options();
 		echo '<div id="message" class="updated fade"><p>'
 			. __('Options changed', 'limit-login-attempts')
 			. '</p></div>';
@@ -434,17 +402,6 @@ function limit_login_option_page()	{
 	$lockouts_now = count(limit_login_get_array('lockouts'));
 	$reg_lockouts_total = limit_login_statistic_get('reg_lockouts_total');
 	$reg_lockouts_now = limit_login_count_reg_lockouts();
-
-	if (!limit_login_support_cookie_option()) {
-		$cookies_disabled = ' DISABLED ';
-		$cookies_note = ' <br /> '
-			. sprintf(__('<strong>NOTE:</strong> Only works in Wordpress %s or later'
-						 , 'limit-login-attempts'), '2.7');
-	} else {
-		$cookies_disabled = '';
-		$cookies_note = '';
-	}
-	$cookies_yes = limit_login_option('cookies') ? ' checked ' : '';
 
 	$client_type = limit_login_option('client_type');
 	$client_type_direct = $client_type == LIMIT_LOGIN_DIRECT_ADDR ? ' checked ' : '';
@@ -577,13 +534,6 @@ function limit_login_option_page()	{
 			  <input type="text" size="3" maxlength="4" value="<?php echo(limit_login_option('lockout_duration')/60); ?>" name="lockout_duration" /> <?php echo __('minutes lockout','limit-login-attempts'); ?> <br />
 			  <input type="text" size="3" maxlength="4" value="<?php echo(limit_login_option('allowed_lockouts')); ?>" name="allowed_lockouts" /> <?php echo __('lockouts increase lockout time to','limit-login-attempts'); ?> <input type="text" size="3" maxlength="4" value="<?php echo(limit_login_option('long_duration')/3600); ?>" name="long_duration" /> <?php echo __('hours','limit-login-attempts'); ?> <br />
 			  <input type="text" size="3" maxlength="4" value="<?php echo(limit_login_option('valid_duration')/3600); ?>" name="valid_duration" /> <?php echo __('hours until retries are reset','limit-login-attempts'); ?>
-			</td>
-		  </tr>
-		  <tr>
-			<th scope="row" valign="top"><?php echo __('User cookie login','limit-login-attempts'); ?></th>
-			<td>
-			  <label><input type="checkbox" name="cookies" <?php echo $cookies_disabled . $cookies_yes; ?> value="1" /> <?php echo __('Handle cookie login','limit-login-attempts'); ?></label>
-			  <?php echo $cookies_note ?>
 			</td>
 		  </tr>
 		  <tr>

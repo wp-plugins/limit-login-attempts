@@ -87,6 +87,18 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 
 == Todo ==
 
+* More code re-organization
+* Fixup options & upgrade
+* Check registration filters vs 3.0
+* Change requirements to 2.8 or 2.9
+* Remove option for cookie enforcement
+* wp_authenticate => authenticate
+* still need to filter invalied username/password?
+* Log date/time?
+* Log illegal registrations?
+* Dashboard integration?
+* split admin page?
+
 * Translations
 * Look through readme.txt again
 * Links to faq/nicename
@@ -100,9 +112,12 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 = Version 2.0beta4 =
 * Better plugin WordPress integration
 * Move translations to separate directories
+* Code re-organization
+* Forward-merged changes from version 1.5 and 1.5.1
 * Updated Swedish translation
 * Updated Bulgarian translation, thanks to Hristo Chakarov
 * Updated Spanish translation, thanks to Marcelo Pedra
+* Added Brazilian Portugese translation, thanks to Gervásio
 
 = Version 2.0beta3 =
 * Checkpoint release for translations
@@ -115,11 +130,24 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 
 = Version 2.0beta1 =
 * Added a number of options that when activated make it harder to find login names of users
-	* disable password reset using username (accept user email only) for users with a specified role or higher
-	* disable password reset for users with a specified role or higher
-	* restrict rate of new user registrations
-	* filter registration error messages to avoid possible way to brute force find user login name
-	* list of privileged users show which login names can be discovered from user displayname, nickname or "url name"/nicename
+* disable password reset using username (accept user email only) for users with a specified role or higher
+* disable password reset for users with a specified role or higher
+* restrict rate of new user registrations
+* filter registration error messages to avoid possible way to brute force find user login name
+* list of privileged users show which login names can be discovered from user displayname, nickname or "url name"/nicename
+
+= 1.5.1 =
+* Further multisite & WPMU support (again thanks to <erik@erikshosting.com>)
+* Better error handling if option variables are damaged
+* Added Traditional Chinese translation, thanks to Denny Huang <bigexplorations@bigexplorations.com.tw>
+
+= 1.5 =
+* Tested against WordPress 3.0
+* Handle 3.0 login page failure "shake"
+* Basic multisite support (parts thanks to <erik@erikshosting.com>)
+* Added Dutch translation, thanks to Bjorn Wijers <burobjorn@burobjorn.nl>
+* Added Hungarian translation, thanks to Bálint Vereskuti <balint@vereskuti.info>
+* Added French translation, thanks to oVa <ova13lastar@gmail.com>
 
 = Version 1.4.1 =
 * Added Turkish translation, thanks to Yazan Canarkadas
