@@ -1,17 +1,17 @@
 === Limit Login Attempts ===
 Contributors: johanee
 Tags: login, security, authentication
-Requires at least: 2.5
+Requires at least: 2.8
 Tested up to: 3.0.1
-Stable tag: 1.5.1
+Stable tag: 1.5.2
 
-Limit rate of login attempts, including by way of cookies, for each IP. Protects user login names from discovery. (BETA VERSION)
+Limit rate of login attempts for each IP. Also protect new user registration, password resets and more.
 
 == Description ==
 
 THIS IS A BETA VERSION!
 
-Limit the number of login attempts possible both through normal login as well as (WordPress 2.7+) using auth cookies.
+Limit the number of login attempts possible both through normal login as well as using auth cookies.
 
 By default WordPress allows unlimited login attempts either through the login page or by sending special cookies. This allows passwords (or hashes) to be brute-force cracked with relative ease.
 
@@ -31,7 +31,9 @@ Features
 * Allows modification of privileged users Author URL name ("nicename")
 * Handles server behind reverse proxy
 
-Translations: Bulgarian, Catalan*, Czech*, German*, Norwegian*, Persian*, Romanian*, Russian*, Spanish, Swedish, Turkish* (* = translation not yet updated to plugin version 2)
+Translations: Bulgarian, Brazilian Portuguese, Catalan, Chinese (Traditional), Czech, Dutch, French, Finnish, German, Hungarian, Norwegian, Persian, Romanian, Russian, Spanish, Swedish, Turkish
+Translations: Bulgarian, Catalan*, Czech*, German*, Norwegian*, Persian*, Romanian*, Russian*, Spanish, Swedish, Turkish*
+(* = translation not yet updated to plugin version 2)
 
 Plugin uses standard actions and filters only.
 
@@ -87,37 +89,42 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 
 == Todo ==
 
-* More code re-organization
-* Fixup options & upgrade
-* Check registration filters vs 3.0
-* Change requirements to 2.8 or 2.9
-* Remove option for cookie enforcement
-* wp_authenticate => authenticate
-* still need to filter invalied username/password?
-* Log date/time?
-* Log illegal registrations?
-* Dashboard integration?
+* cookie bug??
+
 * split admin page?
+* improve user rename (clear cache, ...)
+
+* Re-re-check: user login name protection, track nonempty_credentials
+* re-do without using user levels
+
+* make dashboard text better
+
+* TEST TEST TEST TEST
+
+* Links to faq/nicename
 
 * Translations
 * Look through readme.txt again
-* Links to faq/nicename
-* Update plugin version functions
-* What to remove at shutdown
-* Array autoload
-* Re-re-check: user login name protection, track nonempty_credentials
+
+* Update screenshots
+* Update site
 
 == Change Log ==
 
 = Version 2.0beta4 =
 * Better plugin WordPress integration
-* Move translations to separate directories
-* Code re-organization
+* Code re-organization. Split into multiple files
+* Improved option handling & better upgrade from previous version
+* Make cookie handling optional again for now -- some people have reported problems with it in 1.5.1
+* Only autoload the necessary option table entries
+* Log time of last lockout for each IP in log; keep track of last increase + last clear for statistics
 * Forward-merged changes from version 1.5 and 1.5.1
+* Move translations to separate directories
 * Updated Swedish translation
 * Updated Bulgarian translation, thanks to Hristo Chakarov
 * Updated Spanish translation, thanks to Marcelo Pedra
 * Added Brazilian Portugese translation, thanks to Gervásio
+* Plugin localization strings changed again unfortunately.
 
 = Version 2.0beta3 =
 * Checkpoint release for translations
@@ -126,7 +133,7 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 * Code clean-ups
 
 = Version 2.0beta2 =
-* Various fixes
+* Many various fixes and improvements! (sorry, no detailed notes)
 
 = Version 2.0beta1 =
 * Added a number of options that when activated make it harder to find login names of users
@@ -135,6 +142,11 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 * restrict rate of new user registrations
 * filter registration error messages to avoid possible way to brute force find user login name
 * list of privileged users show which login names can be discovered from user displayname, nickname or "url name"/nicename
+
+= 1.5.2 =
+* Reverted minor cookie-handling cleanup which might somehow be responsible for recently reported cookie related lockouts
+* Added version 1.x Brazilian Portuguese translation, thanks to Luciano Passuello
+* Added Finnish translation, thanks to Ari Kontiainen
 
 = 1.5.1 =
 * Further multisite & WPMU support (again thanks to <erik@erikshosting.com>)

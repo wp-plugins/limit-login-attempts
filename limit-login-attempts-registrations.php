@@ -22,6 +22,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/*
+ * Todo:
+ * - add logging of lockouts
+ * - add user_meta with IP to registered users to allow trace
+ */
+
+
 /* Die if included directly (without any PHP warnings, etc) */
 if (!defined('ABSPATH'))
     die();
@@ -32,9 +39,8 @@ if (!defined('ABSPATH'))
 
 /* Check if it is ok to register new user */
 function is_limit_login_reg_ok() {
-	if (!limit_login_option('register_enforce')) {
+	if (!limit_login_option('register_enforce'))
 		return true;
-	}
 
 	$ip = limit_login_get_address();
 
@@ -42,8 +48,8 @@ function is_limit_login_reg_ok() {
 	$valid = limit_login_get_array('registrations_valid');
 	$regs = limit_login_get_array('registrations');
 	$allowed = limit_login_option('register_allowed');
-	return (!limit_login_check_ip($valid, $ip)
-		|| !isset($regs[$ip]) || $regs[$ip] < $allowed);
+	return (!isset($regs[$ip]) || $regs[$ip] < $allowed
+		|| !limit_login_check_ip($valid, $ip));
 }
 
 
@@ -55,10 +61,12 @@ function limit_login_cleanup_registrations() {
 	if (empty($valid) && empty($regs))
 		return;
 
+	$changed = false;
 	foreach ($valid as $ip => $until) {
 		if ($until < $now) {
 			unset($valid[$ip]);
 			unset($regs[$ip]);
+			$changed = true;
 		}
 	}
 
@@ -66,11 +74,14 @@ function limit_login_cleanup_registrations() {
 	foreach ($regs as $ip => $reg) {
 		if (!isset($valid[$ip])) {
 			unset($regs[$ip]);
+			$changed = true;
 		}
 	}
 
-	limit_login_save_array('registrations_valid', $valid);
-	limit_login_save_array('registrations', $regs);
+	if ($changed) {
+		limit_login_store_array('registrations_valid', $valid);
+		limit_login_store_array('registrations', $regs);
+	}
 }
 
 
@@ -90,19 +101,18 @@ function limit_login_reg_add() {
 	$valid = limit_login_get_array('registrations_valid');
 
 	/* Check validity and add one registration */
-	if (isset($regs[$ip]) && isset($valid[$ip]) && time() < $valid[$ip]) {
+	if (isset($regs[$ip]) && isset($valid[$ip]) && time() < $valid[$ip])
 		$regs[$ip] ++;
-	} else {
+	else
 		$regs[$ip] = 1;
-	}
 	$valid[$ip] = time() + limit_login_option('register_duration');
 
-	limit_login_save_array('registrations', $regs);
-	limit_login_save_array('registrations_valid', $valid);
+	limit_login_store_array('registrations', $regs);
+	limit_login_store_array('registrations_valid', $valid);
 
 	/* increase statistics? */
 	if ($regs[$ip] >= limit_login_option('register_allowed'))
-		limit_login_statistic_add('reg_lockouts_total');
+		limit_login_statistic_inc('reg_lockouts_total');
 
 	/* do housecleaning */
 	limit_login_cleanup();
@@ -125,7 +135,7 @@ function limit_login_filter_registration($errors) {
 	}
 
 	/*
-	 * Not locked out. Now enforce error msg filter and, count attempt if there
+	 * Not locked out. Now enforce error msg filter and count attempt if there
 	 * are no errors.
 	 */
 
@@ -135,11 +145,10 @@ function limit_login_filter_registration($errors) {
 	}
 
 	$codes = $errors->get_error_codes();
-
 	if (count($codes) <= 1) {
-		if (count($codes) == 0) {
+		if (count($codes) == 0)
 			limit_login_reg_add();
-		}
+
 		return $errors;
 	}
 
@@ -158,9 +167,8 @@ function limit_login_filter_registration($errors) {
 
 		$old_errors = $errors;
 		$errors = new WP_Error();
-		foreach ($codes as $key => $code) {
+		foreach ($codes as $key => $code)
 			$errors->add($code, $old_errors->get_error_message($code));
-		}
 	}
 
 	return $errors;
@@ -176,13 +184,11 @@ function limit_login_reg_error_msg() {
 
 /* Filter: remove other registration error messages */
 function limit_login_reg_filter_login_message($content) {
-	if (is_limit_login_reg_page() && !is_limit_login_reg_ok()) {
+	if (is_limit_login_reg_page() && !is_limit_login_reg_ok())
 		return '';
-	}
 
 	return $content;
 }
-
 
 
 /* Should we show errors and messages on this page? */
@@ -198,13 +204,12 @@ function is_limit_login_reg_page() {
 }
 
 
-
 /* Add a message to login page when necessary */
 function limit_login_add_reg_error_message() {
 	global $error, $limit_login_my_error_shown;
 
 	if (is_limit_login_reg_page() && !is_limit_login_reg_ok()
-		&& !$limit_login_my_error_shown) {
+	    && !$limit_login_my_error_shown) {
 		$error = limit_login_reg_error_msg();
 		$limit_login_my_error_shown = true;
 	}

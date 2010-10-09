@@ -26,6 +26,7 @@
 if (!defined('ABSPATH'))
     die();
 
+
 /*
  * Constants
  */
@@ -34,22 +35,23 @@ if (!defined('ABSPATH'))
 define('LIMIT_LOGIN_OPTIONS_VERSION', 2);
 
 /* Option name in WP options table */
-define('LIMIT_LOGIN_OPTIONS_WPOPTION', 'limit_login_options');
+define('LIMIT_LOGIN_OPTIONS_NAME', limit_login_name('options'));
+
 
 /*
  * Variables
  *
  * Assignments are for default value -- change on admin page.
  *
- * This file is included in function context. This means that these variables
- * are "global" only to this file unless defined with $GLOBALS.
+ * This file is included in function context. This means that global variables
+ * have to be defined with $GLOBALS.
  */
 
 /* Runtime options, loaded from options table */
 $GLOBALS['limit_login_options'] = array();
 
-/* Default values for options (not global -- only visible in this file) */
-$limit_login_options_default =
+/* Default values for options */
+$GLOBALS['limit_login_options_default'] =
 	array(
 	      /* Plugin options version (for easier plugin upgrades) */
 	      'version' => LIMIT_LOGIN_OPTIONS_VERSION
@@ -72,6 +74,9 @@ $limit_login_options_default =
 	      /* Reset failed attempts after this many seconds */
 	      , 'valid_duration' => 86400 // 24 hours
 
+	      /* Also limit malformed/forged cookies? */
+	      , 'cookies' => true
+
 	      /* Notify on lockout. Values: '', 'log', 'email', 'log,email' */
 	      , 'lockout_notify' => 'log'
 
@@ -81,19 +86,22 @@ $limit_login_options_default =
 	      /* Enforce limit on new user registrations for IP */
 	      , 'register_enforce' => true
 
-	      /* Allow this many new user registrations ... */
+	      /* Allow this many new user registrations for IP ... */
 	      , 'register_allowed' => 3
 
 	      /* ... during this time */
 	      , 'register_duration' => 86400 // 24 hours
 
-	      /* Allow password reset using login name? */
+	      /* Notify on register lockout. Values: '', 'log', 'email', 'log,email' */
+	      , 'register_lockout_notify' => 'log'
+
+	      /* Disable password reset using login name? */
 	      , 'disable_pwd_reset_username' => true
 
 	      /* ... for capability level_xx or higher */
 	      , 'pwd_reset_username_limit' => 1
 
-	      /* Allow password resets at all? */
+	      /* Disable all password resets? */
 	      , 'disable_pwd_reset' => false
 
 	      /* ... for capability level_xx or higher */
@@ -141,21 +149,11 @@ function limit_login_cast_option($name, $value) {
 function limit_login_setup_options() {
 	global $limit_login_options, $limit_login_options_default;
 
-	$options = get_option(LIMIT_LOGIN_OPTIONS_WPOPTION);
+	$options = get_option(LIMIT_LOGIN_OPTIONS_NAME);
 
-	if ($options === false || !is_array($options)) {
+	if (!is_array($options)) {
 		$limit_login_options = $limit_login_options_default;
 		return;
-	}
-
-	/* Only use the options we understand */
-	foreach ($limit_login_options_default as $name => $default_value) {
-		if (!isset($options[$name])) {
-			$limit_login_options[$name] = $default_value;
-			continue;
-		}
-
-		$limit_login_options[$name] = limit_login_cast_option($name, $options[$name]);
 	}
 
 	limit_login_sanitize_options();
@@ -164,7 +162,7 @@ function limit_login_setup_options() {
 
 /* Check if stored options exists */
 function limit_login_options_exists() {
-	return get_option(LIMIT_LOGIN_OPTIONS_WPOPTION) !== false;
+	return get_option(LIMIT_LOGIN_OPTIONS_NAME) !== false;
 }
 
 
@@ -173,15 +171,33 @@ function limit_login_update_options() {
 	global $limit_login_options;
 
 	/* This will automatically create option if it does not exist */
-	update_option(LIMIT_LOGIN_OPTIONS_WPOPTION, $limit_login_options);
+	update_option(LIMIT_LOGIN_OPTIONS_NAME, $limit_login_options);
 }
 
 
-/* Make sure the variables make sense */
+/* Make sure the options make sense */
 function limit_login_sanitize_options() {
-	global $limit_login_options;
+	global $limit_login_options, $limit_login_options_default;
 
-	// todo: more checks?
+	/* Make sure option is valid */
+	foreach ($limit_login_options as $name => $current_value) {
+		if (!isset($limit_login_options_default[$name])) {
+			unset($limit_login_options[$name]);
+			continue;
+		}
+
+		$limit_login_options[$name] = limit_login_cast_option($name, $limit_login_options[$name]);
+	}
+
+	/* ... and that all options exists */
+	foreach ($limit_login_options_default as $name => $default_value) {
+		if (!isset($limit_login_options[$name]))
+			$limit_login_options[$name] = $default_value;
+	}
+
+	/*
+	 * Specific option sanitation follows
+	 */
 
 	$notify_email_after = max(1, intval(limit_login_option('notify_email_after')));
 	$limit_login_options['notify_email_after'] = min(limit_login_option('allowed_lockouts'), $notify_email_after);
@@ -203,7 +219,7 @@ function limit_login_sanitize_options() {
 }
 
 
-/* Get options from $_POST[] and update plugin options */
+/* Get options from $_POST[] and update plugin options (used on admin page) */
 function limit_login_get_options_from_post() {
 	global $limit_login_options, $limit_login_options_default;
 
@@ -230,7 +246,7 @@ function limit_login_get_options_from_post() {
 		if (is_numeric($default_value) && array_key_exists($name, $option_multiple))
 			$value = $value * $option_multiple[$name];
 
-		if (is_string($default_value) && get_magic_quotes_gpc())
+		if (is_string($default_value))
 			$value = stripslashes($value);
 
 		$limit_login_options[$name] = $value;
