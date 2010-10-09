@@ -3,7 +3,7 @@ Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.5
 Tested up to: 3.0.1
-Stable tag: 1.5.1
+Stable tag: 1.5.2
 
 Limit rate of login attempts, including by way of cookies, for each IP.
 
@@ -23,7 +23,7 @@ Features
 * Optional logging, optional email notification
 * Handles server behind reverse proxy
 
-Translations: Bulgarian, Catalan, Chinese (Traditional), Czech, Dutch, French, German, Hungarian, Norwegian, Persian, Romanian, Russian, Spanish, Swedish, Turkish
+Translations: Bulgarian, Brazilian Portuguese, Catalan, Chinese (Traditional), Czech, Dutch, French, Finnish, German, Hungarian, Norwegian, Persian, Romanian, Russian, Spanish, Swedish, Turkish
 
 Plugin uses standard actions and filters only.
 
@@ -63,6 +63,11 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 4. Administration interface in WordPress 2.5
 
 == Changelog ==
+
+= 1.5.2 =
+* Reverted minor cookie-handling cleanup which might somehow be responsible for recently reported cookie related lockouts
+* Added version 1.x Brazilian Portuguese translation, thanks to Luciano Passuello
+* Added Finnish translation, thanks to Ari Kontiainen
 
 = 1.5.1 =
 * Further multisite & WPMU support (again thanks to <erik@erikshosting.com>)
