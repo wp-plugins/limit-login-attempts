@@ -1,15 +1,15 @@
 === Limit Login Attempts ===
 Contributors: johanee
 Tags: login, security, authentication
-Requires at least: 2.5
-Tested up to: 3.0.1
-Stable tag: 1.5.2
+Requires at least: 2.8
+Tested up to: 3.1-RC1
+Stable tag: 1.6.0
 
 Limit rate of login attempts, including by way of cookies, for each IP.
 
 == Description ==
 
-Limit the number of login attempts possible both through normal login as well as (WordPress 2.7+) using auth cookies.
+Limit the number of login attempts possible both through normal login as well as using auth cookies.
 
 By default WordPress allows unlimited login attempts either through the login page or by sending special cookies. This allows passwords (or hashes) to be brute-force cracked with relative ease.
 
@@ -18,7 +18,7 @@ Limit Login Attempts blocks an Internet address from making further attempts aft
 Features
 
 * Limit the number of retry attempts when logging in (for each IP). Fully customizable
-* (WordPress 2.7+) Limit the number of attempts to log in using auth cookies in same way
+* Limit the number of attempts to log in using auth cookies in same way
 * Informs user about remaining retries or lockout time on login page
 * Optional logging, optional email notification
 * Handles server behind reverse proxy
@@ -29,13 +29,17 @@ Plugin uses standard actions and filters only.
 
 == Installation ==
 
-1. Download and extract plugin files to a folder in your wp-content/plugin directory.
+1. Download and extract plugin files to a wp-content/plugin directory.
 2. Activate the plugin through the WordPress admin interface.
-3. Customize the settings from the options page, if desired. If your server is located behind a reverse proxy make sure to change this setting.
+3. Customize the settings on the options page, if desired. If your server is located behind a reverse proxy make sure to change this setting.
 
 If you have any questions or problems please make a post here: http://wordpress.org/tags/limit-login-attempts
 
 == Frequently Asked Questions ==
+
+= Why not reset failed attempts on a successful login? =
+
+This is very much by design. Otherwise you could brute force the "admin" password by logging in as your own user every 4th attempt.
 
 = What is this option about site connection and reverse proxy? =
 
@@ -59,10 +63,20 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 
 1. Loginscreen after failed login with retries remaining
 2. Loginscreen during lockout
-3. Administration interface in WordPress 2.7
-4. Administration interface in WordPress 2.5
+3. Administration interface in WordPress 3.0.4
 
 == Changelog ==
+
+= 1.6.0 =
+* Happy New Year
+* Tested against WordPress 3.1-RC1
+* Plugin now requires WordPress version 2.8+. Of course you should never ever use anything but the latest version
+* Fixed deprecation warnings that had been piling up with the old version requirement. Thanks to Johannes Ruthenberg for the report that prompted this
+* Removed auth cookie admin check for version 2.7.
+* Make sure relevant values in $_COOKIE get cleared right away on auth cookie validation failure. There are still some problems with cookie auth handling. The lockout can trigger prematurely in rare cases, but fixing it is plugin version 2 stuff unfortunately.
+* Changed default time for retries to reset from 24 hours to 12 hours. The security impact is very minor and it means the warning will disappear "overnight"
+* Added question to FAQ ("Why not reset failed attempts on a successful login?")
+* Updated screenshots
 
 = 1.5.2 =
 * Reverted minor cookie-handling cleanup which might somehow be responsible for recently reported cookie related lockouts

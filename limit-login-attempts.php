@@ -5,11 +5,11 @@
   Description: Limit rate of login attempts, including by way of cookies, for each IP.
   Author: Johan Eenfeldt
   Author URI: http://devel.kostdoktorn.se
-  Version: 1.5.2
+  Version: 1.6.0
 
-  Copyright 2008, 2009, 2010 Johan Eenfeldt
+  Copyright 2008 - 2011 Johan Eenfeldt
 
-  Thanks to Michael Skerwiderski for reverse proxy handling.
+  Thanks to Michael Skerwiderski for reverse proxy handling suggestions.
 
   Licenced under the GNU GPL:
 
@@ -63,12 +63,9 @@ $limit_login_options =
 		  , 'long_duration' => 86400 // 24 hours
 
 		  /* Reset failed attempts after this many seconds */
-		  , 'valid_duration' => 86400 // 24 hours
+		  , 'valid_duration' => 43200 // 12 hours
 
-		  /* Also limit malformed/forged cookies?
-		   *
-		   * NOTE: Only works in WP 2.7+, as necessary actions were added then.
-		   */
+		  /* Also limit malformed/forged cookies? */
 		  , 'cookies' => true
 
 		  /* Notify on lockout. Values: '', 'log', 'email', 'log,email' */
@@ -96,8 +93,8 @@ limit_login_setup();
 
 /* Get options and setup filters & actions */
 function limit_login_setup() {
-	load_plugin_textdomain('limit-login-attempts'
-			       , PLUGINDIR.'/'.dirname(plugin_basename(__FILE__)));
+	load_plugin_textdomain('limit-login-attempts', false
+			       , dirname(plugin_basename(__FILE__)));
 
 	limit_login_setup_options();
 
@@ -211,11 +208,19 @@ function limit_login_handle_cookies() {
 		return;
 	}
 
-	if (empty($_COOKIE[AUTH_COOKIE]) && empty($_COOKIE[SECURE_AUTH_COOKIE])
-	    && empty($_COOKIE[LOGGED_IN_COOKIE])) {
-		return;
-	}
+	limit_login_clear_auth_cookie();
+}
 
+
+/* Action: failed cookie login wrapper for limit_login_failed() */
+function limit_login_failed_cookie($cookie_elements) {
+	limit_login_clear_auth_cookie();
+
+	limit_login_failed($cookie_elements['username']);
+}
+
+/* Make sure auth cookie really get cleared (for this session too) */
+function limit_login_clear_auth_cookie() {
 	wp_clear_auth_cookie();
 
 	if (!empty($_COOKIE[AUTH_COOKIE])) {
@@ -229,20 +234,13 @@ function limit_login_handle_cookies() {
 	}
 }
 
-
-/* Action: failed cookie login wrapper for limit_login_failed() */
-function limit_login_failed_cookie($arg) {
-	limit_login_failed($arg);
-	wp_clear_auth_cookie();
-}
-
 /*
  * Action when login attempt failed
  *
  * Increase nr of retries (if necessary). Reset valid value. Setup
  * lockout if nr of retries are above threshold. And more!
  */
-function limit_login_failed($arg) {
+function limit_login_failed($username) {
 	$ip = limit_login_get_address();
 
 	/* if currently locked-out, do not add to retries */
@@ -302,21 +300,11 @@ function limit_login_failed($arg) {
 	    $lockouts[$ip] = time() + limit_login_option('lockout_duration');
 	}
 
-	/* try to find username which failed */
-	$user = '';
-	if (is_string($arg)) {
-	    /* action: wp_login_failed */
-	    $user = $arg;
-	} elseif (is_array($arg) && array_key_exists('username', $arg)) {
-	    /* action: auth_cookie_bad_* */
-	    $user = $arg['username'];
-	}
-
 	/* do housecleaning and save values */
 	limit_login_cleanup($retries, $lockouts, $valid);
 
 	/* do any notification */
-	limit_login_notify($user);
+	limit_login_notify($username);
 
 	/* increase statistics */
 	$total = get_option('limit_login_lockouts_total');
@@ -398,13 +386,13 @@ function limit_login_notify_email($user) {
 			* limit_login_option('allowed_lockouts');
 		$lockouts = limit_login_option('allowed_lockouts');
 		$time = round(limit_login_option('long_duration') / 3600);
-		$when = sprintf(__ngettext('%d hour', '%d hours', $time, 'limit-login-attempts'), $time);
+		$when = sprintf(_n('%d hour', '%d hours', $time, 'limit-login-attempts'), $time);
 	} else {
 		/* normal lockout */
 		$count = $retries[$ip];
 		$lockouts = floor($count / limit_login_option('allowed_retries'));
 		$time = round(limit_login_option('lockout_duration') / 60);
-		$when = sprintf(__ngettext('%d minute', '%d minutes', $time, 'limit-login-attempts'), $time);
+		$when = sprintf(_n('%d minute', '%d minutes', $time, 'limit-login-attempts'), $time);
 	}
 
 	$blogname = is_limit_login_multisite() ? get_site_option('site_name') : get_option('blogname');	
@@ -486,9 +474,9 @@ function limit_login_error_msg() {
 	$when = ceil(($lockouts[$ip] - time()) / 60);
 	if ($when > 60) {
 		$when = ceil($when / 60);
-		$msg .= sprintf(__ngettext('Please try again in %d hour.', 'Please try again in %d hours.', $when, 'limit-login-attempts'), $when);
+		$msg .= sprintf(_n('Please try again in %d hour.', 'Please try again in %d hours.', $when, 'limit-login-attempts'), $when);
 	} else {
-		$msg .= sprintf(__ngettext('Please try again in %d minute.', 'Please try again in %d minutes.', $when, 'limit-login-attempts'), $when);
+		$msg .= sprintf(_n('Please try again in %d minute.', 'Please try again in %d minutes.', $when, 'limit-login-attempts'), $when);
 	}
 
 	return $msg;
@@ -517,7 +505,7 @@ function limit_login_retries_remaining_msg() {
 	}
 
 	$remaining = max((limit_login_option('allowed_retries') - ($retries[$ip] % limit_login_option('allowed_retries'))), 0);
-	return sprintf(__ngettext("<strong>%d</strong> attempt remaining.", "<strong>%d</strong> attempts remaining.", $remaining, 'limit-login-attempts'), $remaining);
+	return sprintf(_n("<strong>%d</strong> attempt remaining.", "<strong>%d</strong> attempts remaining.", $remaining, 'limit-login-attempts'), $remaining);
 }
 
 
@@ -634,13 +622,6 @@ function limit_login_track_credentials($user, $password) {
  * Admin stuff
  */
 
-/* Does wordpress version support cookie option? */
-function limit_login_support_cookie_option() {
-	global $wp_version;
-	return (version_compare($wp_version, '2.7', '>='));
-}
-
-
 /* Make a guess if we are behind a proxy or not */
 function limit_login_guess_proxy() {
 	return isset($_SERVER[LIMIT_LOGIN_PROXY_ADDR])
@@ -708,6 +689,8 @@ function limit_login_sanitize_variables() {
 	limit_login_sanitize_simple_int('allowed_lockouts');
 	limit_login_sanitize_simple_int('long_duration');
 
+	$limit_login_options['cookies'] = !!limit_login_option('cookies');
+
 	$notify_email_after = max(1, intval(limit_login_option('notify_email_after')));
 	$limit_login_options['notify_email_after'] = min(limit_login_option('allowed_lockouts'), $notify_email_after);
 
@@ -720,11 +703,6 @@ function limit_login_sanitize_variables() {
 		}
 	}
 	$limit_login_options['lockout_notify'] = implode(',', $new_args);
-
-	$cookies = limit_login_option('cookies')
-		&& limit_login_support_cookie_option() ? true : false;
-
-	$limit_login_options['cookies'] = $cookies;
 
 	if ( limit_login_option('client_type') != LIMIT_LOGIN_DIRECT_ADDR
 		 && limit_login_option('client_type') != LIMIT_LOGIN_PROXY_ADDR ) {
@@ -760,12 +738,12 @@ function limit_login_show_log($log) {
 		return;
 	}
 
-	echo('<tr><th scope="col">' . _c("IP|Internet address", 'limit-login-attempts') . '</th><th scope="col">' . __('Tried to log in as', 'limit-login-attempts') . '</th></tr>');
+	echo('<tr><th scope="col">' . _x("IP", "Internet address", 'limit-login-attempts') . '</th><th scope="col">' . __('Tried to log in as', 'limit-login-attempts') . '</th></tr>');
 	foreach ($log as $ip => $arr) {
 		echo('<tr><td class="limit-login-ip">' . $ip . '</td><td class="limit-login-max">');
 		$first = true;
 		foreach($arr as $user => $count) {
-			$count_desc = sprintf(__ngettext('%d lockout', '%d lockouts', $count, 'limit-login-attempts'), $count);
+			$count_desc = sprintf(_n('%d lockout', '%d lockouts', $count, 'limit-login-attempts'), $count);
 			if (!$first) {
 				echo(', ' . $user . ' (' .  $count_desc . ')');
 			} else {
@@ -847,15 +825,6 @@ function limit_login_option_page()	{
 	$lockouts = get_option('limit_login_lockouts');
 	$lockouts_now = is_array($lockouts) ? count($lockouts) : 0;
 
-	if (!limit_login_support_cookie_option()) {
-		$cookies_disabled = ' DISABLED ';
-		$cookies_note = ' <br /> '
-			. __('<strong>NOTE:</strong> Only works in Wordpress 2.7 or later'
-				 , 'limit-login-attempts');
-	} else {
-		$cookies_disabled = '';
-		$cookies_note = '';
-	}
 	$cookies_yes = limit_login_option('cookies') ? ' checked ' : '';
 	$cookies_no = limit_login_option('cookies') ? '' : ' checked ';
 
@@ -894,7 +863,7 @@ function limit_login_option_page()	{
 			<td>
 			  <?php if ($lockouts_total > 0) { ?>
 			  <input name="reset_total" value="<?php echo __('Reset Counter','limit-login-attempts'); ?>" type="submit" />
-			  <?php echo sprintf(__ngettext('%d lockout since last reset', '%d lockouts since last reset', $lockouts_total, 'limit-login-attempts'), $lockouts_total); ?>
+			  <?php echo sprintf(_n('%d lockout since last reset', '%d lockouts since last reset', $lockouts_total, 'limit-login-attempts'), $lockouts_total); ?>
 			  <?php } else { echo __('No lockouts yet','limit-login-attempts'); } ?>
 			</td>
 		  </tr>
@@ -942,8 +911,7 @@ function limit_login_option_page()	{
 		  <tr>
 			<th scope="row" valign="top"><?php echo __('Handle cookie login','limit-login-attempts'); ?></th>
 			<td>
-			  <label><input type="radio" name="cookies" <?php echo $cookies_disabled . $cookies_yes; ?> value="1" /> <?php echo __('Yes','limit-login-attempts'); ?></label> <label><input type="radio" name="cookies" <?php echo $cookies_disabled . $cookies_no; ?> value="0" /> <?php echo __('No','limit-login-attempts'); ?></label>
-			  <?php echo $cookies_note ?>
+			  <label><input type="radio" name="cookies" <?php echo $cookies_yes; ?> value="1" /> <?php echo __('Yes','limit-login-attempts'); ?></label> <label><input type="radio" name="cookies" <?php echo $cookies_no; ?> value="0" /> <?php echo __('No','limit-login-attempts'); ?></label>
 			</td>
 		  </tr>
 		  <tr>
