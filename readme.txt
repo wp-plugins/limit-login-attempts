@@ -3,13 +3,15 @@ Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.8
 Tested up to: 3.0.1
-Stable tag: 1.5.2
+Stable tag: 1.6.0
 
-Limit rate of login attempts for each IP. Also protect new user registration, password resets and more.
+Limit rate of login attempts for each IP. Additional security for new user registrations, password resets and more.
 
 == Description ==
 
 THIS IS A BETA VERSION!
+
+Additional security features for many parts of user handling: login, signup, password reset and more.
 
 Limit the number of login attempts possible both through normal login as well as using auth cookies.
 
@@ -23,17 +25,15 @@ Features
 
 * Limit the number of retry attempts when logging in (for each IP). Fully customizable
 * Optional logging and email notification
-* (WordPress 2.7+) Handles attempts to log in using auth cookies
-* Helps protect user login names from discovery
-* Informs user about remaining retries or lockout time on login page
-* (Wordpress 2.6.5+) Optional restrictions on password reset attempts for privileged users
-* Optional rate limit on new user registration
+* Handles attempts to log in using auth cookies
+* Help protect user login names from discovery
+* Show remaining retries or lockout time on login page
+* Optional restrictions of password resets for privileged users
+* Optional rate limit of new user registration
 * Allows modification of privileged users Author URL name ("nicename")
 * Handles server behind reverse proxy
 
-Translations: Bulgarian, Brazilian Portuguese, Catalan, Chinese (Traditional), Czech, Dutch, French, Finnish, German, Hungarian, Norwegian, Persian, Romanian, Russian, Spanish, Swedish, Turkish
-Translations: Bulgarian, Catalan*, Czech*, German*, Norwegian*, Persian*, Romanian*, Russian*, Spanish, Swedish, Turkish*
-(* = translation not yet updated to plugin version 2)
+Translations: Bulgarian, Brazilian Portuguese, Catalan, Chinese (Traditional), Czech, Dutch, French, Finnish, German, Hungarian, Norwegian, Persian, Romanian, Russian, Spanish, Swedish, Turkish. (Most translations not yet updated to plugin version 2.)
 
 Plugin uses standard actions and filters only.
 
@@ -63,7 +63,11 @@ Either wait, or:
 
 If you have ftp / ssh access to the site rename the file `wp-content/plugins/limit-login-attempts/limit-login-attempts.php` to deactivate the plugin.
 
-If you have access to the database (for example through phpMyAdmin) you can clear the `limit_login_lockouts` option in the wordpress options table. In a default setup this would work: `UPDATE wp_options SET option_value = '' WHERE option_name = 'limit_login_lockouts'`
+If you have access to the database (for example through phpMyAdmin) you can clear the `limit_login_lockouts` option in the wordpress options table.
+
+Don't do this unless you know what you are doing.
+
+In a default setup this would work: `UPDATE wp_options SET option_value = '' WHERE option_name = 'limit_login_lockouts'`
 
 = Why the privileged users list? Why are some names marked? =
 
@@ -75,9 +79,13 @@ These are the various names WordPress has for each user. To increase security th
 
 = I disabled password reset for administrators and forgot my password, what do I do? =
 
-If you have ftp / ssh access look at the answer regarding being locked out above.
+If you have ftp / ssh access look at the answer regarding being locked out above to disable plugin.
 
-If you have access to the database (for example through phpMyAdmin) you can clear the `limit_login_reset_min_role` option in the wordpress options table. In a default setup this would work: `UPDATE wp_options SET option_value = '' WHERE option_name = 'limit_login_reset_min_role'`
+If you have access to the database (for example through phpMyAdmin) you can remove the plugin options value. This will revert settiongs to defaults which allow password reset using account e-mail (for privileged users).
+
+Plugin options are stored in `limit_login_options` option in the wordpress options table. You can remove this in a default setup using: `DELETE FROM wp_options WHERE option_name = 'limit_login_options'`. PLEASE BE CAREFUL OR YOU WILL SCREW UP YOUR WORDPRESS INSTALL!
+
+Truly advanced users can edit the 'disable_pwd_reset' entry in the serialized array of course.
 
 == Screenshots ==
 
@@ -92,12 +100,15 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 * cookie bug??
 
 * split admin page?
-* improve user rename (clear cache, ...)
+* remove user name editing, have to think some more on this
+* escape all translated strings
 
 * Re-re-check: user login name protection, track nonempty_credentials
 * re-do without using user levels
 
 * make dashboard text better
+
+* show when old translation
 
 * TEST TEST TEST TEST
 
@@ -109,6 +120,9 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 * Update screenshots
 * Update site
 
+* track registrations
+* track last login
+
 == Change Log ==
 
 = Version 2.0beta4 =
@@ -118,7 +132,7 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 * Make cookie handling optional again for now -- some people have reported problems with it in 1.5.1
 * Only autoload the necessary option table entries
 * Log time of last lockout for each IP in log; keep track of last increase + last clear for statistics
-* Forward-merged changes from version 1.5 and 1.5.1
+* Forward-merged changes from versions 1.5 - 1.5.2
 * Move translations to separate directories
 * Updated Swedish translation
 * Updated Bulgarian translation, thanks to Hristo Chakarov

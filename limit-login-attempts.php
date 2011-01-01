@@ -197,6 +197,30 @@ function limit_login_failed_cookie($arg) {
 }
 
 /*
+function limit_login_add_user_cookieinfo($cookie_elements) {
+	$username = $cookie_elements['username'];
+
+	$user = get_userdatabylogin($username);
+	if (!$user) {
+		return false;
+	}
+
+	$cookieinfo = array('expiration' => $cookie_elements['expiration']
+			    , 'hmac' => $cookie_elements['hmac']);
+	update_user_meta($user->ID, 'limit_login_cookieinfo', $cookieinfo);
+}
+
+function limit_login_get_user_cookieinfo($username) {
+	$user = get_userdatabylogin($username);
+	if (!$user) {
+		return false;
+	}
+
+	$meta = get_user_meta(
+}
+ */
+
+/*
  * Action when login attempt failed
  *
  * Increase nr of retries (if necessary). Reset valid value. Setup
@@ -441,7 +465,7 @@ function limit_login_notify_log($username) {
 	/*
 	 * Log format:
 	 * [ip][0] time of last attempt
-	 * [ip][1][user_name] number of attempts
+	 * [ip][1][user_name] number of lockouts for username
 	 */
 	if (isset($log[$ip])) {
 		$log[$ip][0] = time();
@@ -723,11 +747,12 @@ function limit_login_get_array($array_name) {
 
 	$a = get_option($real_array_name);
 
-	if (!is_array($a)) {
-		$a = array();
-		$autoload = limit_login_is_array_autoload($array_name) ? 'yes' : 'no';
-		add_option($real_array_name, $a, '', $autoload);
-	}
+	if (is_array($a))
+		return $a;
+
+	$a = array();
+	$autoload = limit_login_is_array_autoload($array_name) ? 'yes' : 'no';
+	add_option($real_array_name, $a, '', $autoload);
 
 	return $a;
 }

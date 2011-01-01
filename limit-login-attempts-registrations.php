@@ -110,7 +110,7 @@ function limit_login_reg_add() {
 	limit_login_store_array('registrations', $regs);
 	limit_login_store_array('registrations_valid', $valid);
 
-	/* increase statistics? */
+	/* registration lockout? increase statistics */
 	if ($regs[$ip] >= limit_login_option('register_allowed'))
 		limit_login_statistic_inc('reg_lockouts_total');
 
