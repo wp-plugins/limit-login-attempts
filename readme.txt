@@ -3,7 +3,7 @@ Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.8
 Tested up to: 3.1-RC4
-Stable tag: 1.6.0
+Stable tag: 1.6.1
 
 Limit rate of login attempts, including by way of cookies, for each IP. Fully customizable.
 
@@ -68,9 +68,10 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 == Changelog ==
 
 = 1.6.1 =
-* (WordPress 3.0+) An invalid cookie can sometimes get sent multiple times before it gets cleared, resulting in multiple failed attempts or even a lockout from a single invalid cookie. Remember the latest failed cookie to make sure we only count it as one failed attempt
+* (WordPress 3.0+) An invalid cookie can sometimes get sent multiple times before it gets cleared, resulting in multiple failed attempts or even a lockout from a single invalid cookie. Store the latest failed cookie to make sure we only count it as one failed attempt
 * Define "Text Domain" correctly
 * Include correct Dutch tranlation file. Thanks to Martin1 for noticing. Thanks again to Bjorn Wijers for the translation
+* Updated POT file for this version
 * Tested against WordPress 3.1-RC4
 
 = 1.6.0 =
