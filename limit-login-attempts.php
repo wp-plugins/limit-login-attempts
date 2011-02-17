@@ -5,7 +5,8 @@
   Description: Limit rate of login attempts, including by way of cookies, for each IP.
   Author: Johan Eenfeldt
   Author URI: http://devel.kostdoktorn.se
-  Version: 1.6.0
+  Text Domain: limit-login-attempts
+  Version: 1.6.1
 
   Copyright 2008 - 2011 Johan Eenfeldt
 
@@ -102,8 +103,16 @@ function limit_login_setup() {
 	add_action('wp_login_failed', 'limit_login_failed');
 	if (limit_login_option('cookies')) {
 		add_action('plugins_loaded', 'limit_login_handle_cookies', 99999);
-		add_action('auth_cookie_bad_hash', 'limit_login_failed_cookie');
 		add_action('auth_cookie_bad_username', 'limit_login_failed_cookie');
+
+		global $wp_version;
+
+		if (version_compare($wp_version, '3.0', '>=')) {
+			add_action('auth_cookie_bad_hash', 'limit_login_failed_cookie_hash');
+			add_action('auth_cookie_valid', 'limit_login_valid_cookie', 10, 2);
+		} else {
+			add_action('auth_cookie_bad_hash', 'limit_login_failed_cookie');
+		}
 	}
 	add_filter('wp_authenticate_user', 'limit_login_wp_authenticate_user', 99999, 2);
 	add_filter('shake_error_codes', 'limit_login_failure_shake');
@@ -212,12 +221,88 @@ function limit_login_handle_cookies() {
 }
 
 
-/* Action: failed cookie login wrapper for limit_login_failed() */
+/*
+ * Action: failed cookie login hash
+ *
+ * Make sure same invalid cookie doesn't get counted more than once.
+ *
+ * Requires WordPress version 3.0.0, previous versions use limit_login_failed_cookie()
+ */
+function limit_login_failed_cookie_hash($cookie_elements) {
+	limit_login_clear_auth_cookie();
+
+	/*
+	 * Under some conditions an invalid auth cookie will be used multiple
+	 * times, which results in multiple failed attempts from that one
+	 * cookie.
+	 *
+	 * Unfortunately I've not been able to replicate this consistently and
+	 * thus have not been able to make sure what the exact cause is.
+	 *
+	 * Probably it is because a reload of for example the admin dashboard
+	 * might result in multiple requests from the browser before the invalid
+	 * cookie can be cleard.
+	 *
+	 * Handle this by only counting the first attempt when the exact same
+	 * cookie is attempted for a user.
+	 */
+
+	extract($cookie_elements, EXTR_OVERWRITE);
+
+	// Check if cookie is for a valid user
+	$user = get_userdatabylogin($username);
+	if (!$user) {
+		// "shouldn't happen" for this action
+		limit_login_failed($username);
+		return;
+	}
+
+	$previous_cookie = get_user_meta($user->ID, 'limit_login_previous_cookie', true);
+	if ($previous_cookie && $previous_cookie == $cookie_elements) {
+		// Identical cookies, ignore this attempt
+		return;
+	}
+
+	// Store cookie
+	if ($previous_cookie)
+		update_user_meta($user->ID, 'limit_login_previous_cookie', $cookie_elements);
+	else
+		add_user_meta($user->ID, 'limit_login_previous_cookie', $cookie_elements, true);
+
+	limit_login_failed($username);
+}
+
+
+/*
+ * Action: successful cookie login
+ *
+ * Clear any stored user_meta.
+ *
+ * Requires WordPress version 3.0.0, not used in previous versions
+ */
+function limit_login_valid_cookie($cookie_elements, $user) {
+	/*
+	 * As all meta values get cached on user load this should not require
+	 * any extra work for the common case of no stored value.
+	 */
+
+	if (get_user_meta($user->ID, 'limit_login_previous_cookie')) {
+		delete_user_meta($user->ID, 'limit_login_previous_cookie');
+	}
+}
+
+
+/* Action: failed cookie login (calls limit_login_failed()) */
 function limit_login_failed_cookie($cookie_elements) {
 	limit_login_clear_auth_cookie();
 
+	/*
+	 * Invalid username gets counted every time.
+	 */
+
 	limit_login_failed($cookie_elements['username']);
 }
+
 
 /* Make sure auth cookie really get cleared (for this session too) */
 function limit_login_clear_auth_cookie() {

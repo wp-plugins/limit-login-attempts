@@ -1,223 +1,223 @@
-# Limit Login Attempts Swedish Translation
+# Limit Login Attempts German Translation
 # Copyright (C) 2009 Johan Eenfeldt
 # This file is distributed under the same license as the Wordpress package.
 # Johan Eenfeldt <johan.eenfeldt@kostdoktorn.se>, 2009.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: limit-login-attempts 1.2\n"
+"Project-Id-Version: limit-login-attempts 1.3\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/limit-login-attempts\n"
 "POT-Creation-Date: 2009-01-28 17:17+0000\n"
-"PO-Revision-Date: 2009-07-15 13:14+0100\n"
-"Last-Translator: Rune G <dev@bloggs.be>\n"
-"Language-Team: DigitalHverdag <dev@bloggs.be>\n"
+"PO-Revision-Date: 2010-03-19 13:52+0100\n"
+"Last-Translator: BjornW <burobjorn@burobjorn.nl>\n"
+"Language-Team: German <michael@skerwiderski.de>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Poedit-Language: Norwegian Bokmal\n"
-"X-Poedit-Country: NORWAY\n"
+"X-Poedit-Language: German\n"
+"X-Poedit-Country: GERMANY\n"
 
 #: limit-login-attempts.php:372
 #, php-format
 msgid "%d hour"
 msgid_plural "%d hours"
-msgstr[0] "%d time"
-msgstr[1] "%d timer"
+msgstr[0] "%d uur"
+msgstr[1] "%d uren"
 
 #: limit-login-attempts.php:378
 #, php-format
 msgid "%d minute"
 msgid_plural "%d minutes"
-msgstr[0] "%d minutt"
-msgstr[1] "%d minutter"
+msgstr[0] "%d minute"
+msgstr[1] "%d minuten"
 
 #: limit-login-attempts.php:381
 #, php-format
 msgid "[%s] Too many failed login attempts"
-msgstr "[%s] For mange påloggingsforsøk"
+msgstr "[%s] Teveel gefaalde login pogingen"
 
 #: limit-login-attempts.php:383
 #, php-format
 msgid "%d failed login attempts (%d lockout(s)) from IP: %s"
-msgstr "%d påloggingsforsøk (stoppet %d gang(er)) fra IP: %s"
+msgstr "%d gefaalde login pogingen (%d blokkades) van IP: %s"
 
 #: limit-login-attempts.php:387
 #, php-format
 msgid "Last user attempted: %s"
-msgstr "Siste brukernavn som feilet : %s"
+msgstr "Laatste inlogpoging werd gedaan met de gebruikersnaam: %s"
 
 #: limit-login-attempts.php:390
 #, php-format
 msgid "IP was blocked for %s"
-msgstr "IP blokkert i %s"
+msgstr "IP was geblokkeerd voor %s."
 
 #: limit-login-attempts.php:445
 msgid "<strong>ERROR</strong>: Too many failed login attempts."
-msgstr "<strong>Feil</strong>: For mange påloggingsforsøk."
+msgstr "<strong>FOUT</strong>: Teveel gefaalde inlogpogingen."
 
 #: limit-login-attempts.php:449
 msgid "Please try again later."
-msgstr "Prøv igjen senere"
+msgstr "Probeer het later nogmaals"
 
 #: limit-login-attempts.php:456
 #, php-format
 msgid "Please try again in %d hour."
 msgid_plural "Please try again in %d hours."
-msgstr[0] "Prøv igjen om %d time."
-msgstr[1] "Prøv igjen om %d timer."
+msgstr[0] ".Probeer het over %d uur nogmaals."
+msgstr[1] "Probeer het over %d uren nogmaals."
 
 #: limit-login-attempts.php:458
 #, php-format
 msgid "Please try again in %d minute."
 msgid_plural "Please try again in %d minutes."
-msgstr[0] "Prøv igjen om %d minutt."
-msgstr[1] "Prøv igjen om %d minutter."
+msgstr[0] "Probeer het over %d minuut nogmaals"
+msgstr[1] "Probeer het over %d minuten nogmaals."
 
 #: limit-login-attempts.php:487
 #, php-format
 msgid "<strong>%d</strong> attempt remaining."
 msgid_plural "<strong>%d</strong> attempts remaining."
-msgstr[0] "<strong>%d</strong> forsøk gjenstår."
-msgstr[1] "<strong>%d</strong> forsøk gjenstår."
+msgstr[0] "Nog <strong>%d</strong> loginpoging mogelijk."
+msgstr[1] "Nog <strong>%d</strong> loginpogingen mogelijk."
 
 #: limit-login-attempts.php:551
 msgid "<strong>ERROR</strong>: Incorrect username or password."
-msgstr "<strong>Feil</strong>: Feil brukernavn eller passord."
+msgstr "<strong>FOUT</strong>: Ongeldige gebruikersnaam of wachtwoord."
 
 #: limit-login-attempts.php:714
 msgid "IP|Internet address"
-msgstr "IP"
+msgstr "IP|Internet adres"
 
 #: limit-login-attempts.php:714
 msgid "Tried to log in as"
-msgstr "Prøvde å logge inn som"
+msgstr "Inlogpoging als"
 
 #: limit-login-attempts.php:719
 #, php-format
 msgid "%d lockout"
 msgid_plural "%d lockouts"
-msgstr[0] "%d blokkering"
-msgstr[1] "%d blokkeringer"
+msgstr[0] "%d Blokkade"
+msgstr[1] "%d Blokkades"
 
 #: limit-login-attempts.php:743
 msgid "Cleared IP log"
-msgstr "Nullstill IP loggen"
+msgstr "IP log is gewist"
 
 #: limit-login-attempts.php:751
 msgid "Reset lockout count"
-msgstr "Nullstill antall blokkeringer"
+msgstr "Reset blokkades teller"
 
 #: limit-login-attempts.php:759
 msgid "Cleared current lockouts"
-msgstr "Fjernet gjeldende blokkeringer"
+msgstr "Actieve blokkades zijn gewist"
 
 #: limit-login-attempts.php:788
 msgid "Options changed"
-msgstr "Innstillinger endret"
+msgstr "Instellingen zijn gewijzigd"
 
 #: limit-login-attempts.php:799
 msgid "<strong>NOTE:</strong> Only works in Wordpress 2.7 or later"
-msgstr "<strong>NB:</strong> Du må bruker WordPress 2.7 eller nyere"
+msgstr "<strong>NB:</strong> Werkt alleen vanaf Wordpress 2.7 of hogere versie nummers"
 
 #: limit-login-attempts.php:815
 #, php-format
 msgid "It appears the site is reached directly (from your IP: %s)"
-msgstr "Det ser ut som om du kan nå bloggen direkte (fra din IP: %s)"
+msgstr "Het lijkt erop dat de site direct te bereiken is (van uw IP-adres: %s)"
 
 #: limit-login-attempts.php:817
 #, php-format
 msgid "It appears the site is reached through a proxy server (proxy IP: %s, your IP: %s)"
-msgstr "Det ser ut som om bloggen din er bak en proxy server (proxy IP: %s, din IP: %s)"
+msgstr "Het lijkt erop dat de site te bereiken is via een proxy server,  (Proxy Server IP adres: %s, Uw IP-adres: %s)"
 
 #: limit-login-attempts.php:825
 #, php-format
 msgid "<strong>Current setting appears to be invalid</strong>. Please make sure it is correct. Further information can be found <a href=\"%s\" title=\"FAQ\">here</a>"
-msgstr "<strong>Dine innstillinger kan være feil</strong>. Sjekk at de er korrekte. Mer informasjon <a href=\"%s\" title=\"FAQ\">her</a>"
+msgstr "<strong>De huidige instelling lijkt ongeldig te zijn</strong>. Pas deze zo aan dat deze wel geldig is, informatie over hoe u dit kunt doen kunt u vinden in de <a href=\"%s\" title=\"FAQ\">FAQ</a> (in het Engels)."
 
 #: limit-login-attempts.php:833
 msgid "Limit Login Attempts Settings"
-msgstr "Limit Login Attempts Innstillinger"
+msgstr "Limit Login Attempts Instellingen"
 
 #: limit-login-attempts.php:834
 msgid "Statistics"
-msgstr "Statistikk"
+msgstr "Statistieken"
 
 #: limit-login-attempts.php:838
 msgid "Total lockouts"
-msgstr "Totalt antall blokkeringer"
+msgstr "Totaal aantal blokkades"
 
 #: limit-login-attempts.php:841
 msgid "Reset Counter"
-msgstr "Nullstill teller"
+msgstr "Teller resetten"
 
 #: limit-login-attempts.php:842
 #, php-format
 msgid "%d lockout since last reset"
 msgid_plural "%d lockouts since last reset"
-msgstr[0] "%d blokkering siden siste nullstilling"
-msgstr[1] "%d blokkeringer siden siste nullstilling"
+msgstr[0] "%d Blokkade sinds de laatste reset"
+msgstr[1] "%d Blokkades sinds de laatste reset"
 
 #: limit-login-attempts.php:843
 msgid "No lockouts yet"
-msgstr "Ingen blokkeringer enda"
+msgstr "Nog geen blokkades actief"
 
 #: limit-login-attempts.php:848
 msgid "Active lockouts"
-msgstr "Aktive blokkeringer"
+msgstr "Actieve blokkades"
 
 #: limit-login-attempts.php:850
 msgid "Restore Lockouts"
-msgstr "Fjern blokkeringer"
+msgstr "Blokkades opheffen"
 
 #: limit-login-attempts.php:851
 #, php-format
 msgid "%d IP is currently blocked from trying to log in"
-msgstr "%d IP står på blokkeringslisten"
+msgstr "%d IP is op dit moment voor inloggen geblokkeerd"
 
 #: limit-login-attempts.php:857
 msgid "Options"
-msgstr "Innstillinger"
+msgstr "Instellingen"
 
 #: limit-login-attempts.php:861
 msgid "Lockout"
-msgstr "Blokkering"
+msgstr "Blokkade"
 
 #: limit-login-attempts.php:863
 msgid "allowed retries"
-msgstr "Antall påloggingsforsøk"
+msgstr "mogelijke inlogpogingen"
 
 #: limit-login-attempts.php:864
 msgid "minutes lockout"
-msgstr "minutters blokkering"
+msgstr "Aantal minuten geblokkeerd na een gefaalde inlogpoging"
 
 #: limit-login-attempts.php:865
 msgid "lockouts increase lockout time to"
-msgstr "Blokkeringer øker blokkeringstiden til"
+msgstr "Blokkades verhogen de blokkade tijd naar"
 
 #: limit-login-attempts.php:865
 msgid "hours"
-msgstr "timer"
+msgstr "uren"
 
 #: limit-login-attempts.php:866
 msgid "hours until retries are reset"
-msgstr "timer til nullstilling"
+msgstr "aantal uren voordat het aantal ondernomen pogingen wordt gereset"
 
 #: limit-login-attempts.php:870
 msgid "Site connection"
-msgstr "Blogg forbindelse"
+msgstr "Verbinding naar deze website"
 
 #: limit-login-attempts.php:876
 msgid "Direct connection"
-msgstr "Direkte forbindelse"
+msgstr "Directe verbinding"
 
 #: limit-login-attempts.php:881
 msgid "From behind a reversy proxy"
-msgstr "Bak en omvendt proxy"
+msgstr "Via een reverse-proxy"
 
 #: limit-login-attempts.php:887
 msgid "Handle cookie login"
-msgstr "Behandle pålogginger med cookies"
+msgstr "Omgaan met cookie loginverzoeken"
 
 #: limit-login-attempts.php:889
 msgid "Yes"
@@ -225,39 +225,39 @@ msgstr "Ja"
 
 #: limit-login-attempts.php:889
 msgid "No"
-msgstr "Nei"
+msgstr "Nee"
 
 #: limit-login-attempts.php:894
 msgid "Notify on lockout"
-msgstr "Gi melding om blokkering"
+msgstr "Waarschuwen in het geval van een blokkade"
 
 #: limit-login-attempts.php:896
 msgid "Log IP"
-msgstr "Logg IP"
+msgstr "Log IP adres"
 
 #: limit-login-attempts.php:897
 msgid "Email to admin after"
-msgstr "Send epost til admin etter"
+msgstr "Email de beheerder na"
 
 #: limit-login-attempts.php:897
 msgid "lockouts"
-msgstr "blokkeringer"
+msgstr "Blokkades"
 
 #: limit-login-attempts.php:902
 msgid "Change Options"
-msgstr "Endre innstillinger"
+msgstr "Instellingen aanpassen"
 
 #: limit-login-attempts.php:910
 msgid "Lockout log"
-msgstr "Blokkerings logg"
+msgstr "Log van blokkades"
 
 #: limit-login-attempts.php:914
 msgid "Clear Log"
-msgstr "Nullstill loggen"
+msgstr "Log wissen"
 
 #. Plugin Name of an extension
 msgid "Limit Login Attempts"
-msgstr "Begrense påloggingsforsøk"
+msgstr "Limit Login Attempts"
 
 #. Plugin URI of an extension
 msgid "http://devel.kostdoktorn.se/limit-login-attempts"
@@ -265,7 +265,7 @@ msgstr "http://devel.kostdoktorn.se/limit-login-attempts"
 
 #. Description of an extension
 msgid "Limit rate of login attempts, including by way of cookies, for each IP."
-msgstr "Begrenser antall påloggingsforsøk, inkludert forsøk med cookies, for alle IPer"
+msgstr "Beperkt het aantal inlogpogingen, inclusief bij het gebruik van cookies, voor elk IP adres."
 
 #. Author of an extension
 msgid "Johan Eenfeldt"

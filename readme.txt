@@ -2,10 +2,10 @@
 Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.8
-Tested up to: 3.1-RC1
+Tested up to: 3.1-RC4
 Stable tag: 1.6.0
 
-Limit rate of login attempts, including by way of cookies, for each IP.
+Limit rate of login attempts, including by way of cookies, for each IP. Fully customizable.
 
 == Description ==
 
@@ -23,7 +23,7 @@ Features
 * Optional logging, optional email notification
 * Handles server behind reverse proxy
 
-Translations: Bulgarian, Brazilian Portuguese, Catalan, Chinese (Traditional), Czech, Dutch, French, Finnish, German, Hungarian, Norwegian, Persian, Romanian, Russian, Spanish, Swedish, Turkish
+Translations: Bulgarian, Brazilian Portuguese, Catalan, Chinese (Traditional), Czech, Dutch, Finnish, French, German, Hungarian, Norwegian, Persian, Romanian, Russian, Spanish, Swedish, Turkish
 
 Plugin uses standard actions and filters only.
 
@@ -66,6 +66,12 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 3. Administration interface in WordPress 3.0.4
 
 == Changelog ==
+
+= 1.6.1 =
+* (WordPress 3.0+) An invalid cookie can sometimes get sent multiple times before it gets cleared, resulting in multiple failed attempts or even a lockout from a single invalid cookie. Remember the latest failed cookie to make sure we only count it as one failed attempt
+* Define "Text Domain" correctly
+* Include correct Dutch tranlation file. Thanks to Martin1 for noticing. Thanks again to Bjorn Wijers for the translation
+* Tested against WordPress 3.1-RC4
 
 = 1.6.0 =
 * Happy New Year
