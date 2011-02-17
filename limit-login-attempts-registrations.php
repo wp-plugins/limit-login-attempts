@@ -3,7 +3,7 @@
   Limit Login Attempts: registration enforcement functions
   Version 2.0beta4
 
-  Copyright 2009, 2010 Johan Eenfeldt
+  Copyright 2008 - 2011 Johan Eenfeldt
 
   Licenced under the GNU GPL:
 
@@ -22,16 +22,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/*
- * Todo:
- * - add logging of lockouts
- * - add user_meta with IP to registered users to allow trace
- */
-
-
 /* Die if included directly (without any PHP warnings, etc) */
 if (!defined('ABSPATH'))
     die();
+
 
 /*
  * Functions start here
@@ -144,14 +138,6 @@ function limit_login_filter_registration($errors) {
 		return $errors;
 	}
 
-	$codes = $errors->get_error_codes();
-	if (count($codes) <= 1) {
-		if (count($codes) == 0)
-			limit_login_reg_add();
-
-		return $errors;
-	}
-
 	/*
 	 * If more than one error message (meaning both login and email was
 	 * invalid) we strip any 'username_exists' message.
@@ -159,6 +145,14 @@ function limit_login_filter_registration($errors) {
 	 * This is to stop someone from trying different usernames with a known
 	 * bad / empty email address.
 	 */
+
+	$codes = $errors->get_error_codes();
+	if (count($codes) <= 1) {
+		if (count($codes) == 0)
+			limit_login_reg_add();
+
+		return $errors;
+	}
 
 	$key = array_search('username_exists', $codes);
 

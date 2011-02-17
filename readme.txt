@@ -5,13 +5,11 @@ Requires at least: 2.8
 Tested up to: 3.0.1
 Stable tag: 1.6.0
 
-Limit rate of login attempts for each IP. Additional security for new user registrations, password resets and more.
+Limit rate of login attempts for each IP. Also support additional security for password reset, rate limit on new user registrations, and more.
 
 == Description ==
 
 THIS IS A BETA VERSION!
-
-Additional security features for many parts of user handling: login, signup, password reset and more.
 
 Limit the number of login attempts possible both through normal login as well as using auth cookies.
 
@@ -19,19 +17,22 @@ By default WordPress allows unlimited login attempts either through the login pa
 
 Limit Login Attempts blocks an Internet address from making further attempts after a specified limit on retries is reached, making a brute-force attack difficult or impossible.
 
-The plugin also help you protect user login names from discovery. This includes (Wordpress 2.6.5+) password reset attempts for privileged users, rate limit on new user registrations.
+** TODO!!
+
+Additional security features for many parts of user handling: login, signup, password reset and more.
+
+The plugin also help you protect user login names from discovery. This includes password reset attempts for privileged users, rate limit on new user registrations. TODO: spam accounts
 
 Features
 
-* Limit the number of retry attempts when logging in (for each IP). Fully customizable
+* Limit the number of retry attempts when logging in for each IP. Fully customizable
 * Optional logging and email notification
 * Handles attempts to log in using auth cookies
-* Help protect user login names from discovery
 * Show remaining retries or lockout time on login page
 * Optional restrictions of password resets for privileged users
 * Optional rate limit of new user registration
-* Allows modification of privileged users Author URL name ("nicename")
 * Handles server behind reverse proxy
+* Help protect user login names from discovery (work in progress)
 
 Translations: Bulgarian, Brazilian Portuguese, Catalan, Chinese (Traditional), Czech, Dutch, French, Finnish, German, Hungarian, Norwegian, Persian, Romanian, Russian, Spanish, Swedish, Turkish. (Most translations not yet updated to plugin version 2.)
 
@@ -46,6 +47,10 @@ Plugin uses standard actions and filters only.
 If you have any questions or problems please make a post here: http://wordpress.org/tags/limit-login-attempts
 
 == Frequently Asked Questions ==
+
+= Why not reset failed attempts on a successful login? =
+
+This is very much by design. Otherwise you could brute force the "admin" password by logging in as your own user every 4th attempt.
 
 = What is this option about site connection and reverse proxy? =
 
@@ -69,23 +74,15 @@ Don't do this unless you know what you are doing.
 
 In a default setup this would work: `UPDATE wp_options SET option_value = '' WHERE option_name = 'limit_login_lockouts'`
 
-= Why the privileged users list? Why are some names marked? =
-
-These are the various names WordPress has for each user. To increase security the login name should not be the same as any of the others as they can be discovered in various ways.
-
-= What is URL Name / "nicename"? =
-
-"Nicename" is what WordPress calls it (internally). It is constructed directly from the login name and is used in the public author archive url, default comment template (as a comment class) and default post template (as a post class). This means that if you change it the old author archive url will no longer work.
-
 = I disabled password reset for administrators and forgot my password, what do I do? =
 
-If you have ftp / ssh access look at the answer regarding being locked out above to disable plugin.
+If you have ftp / ssh access look at the answer regarding being locked out above to disable plugin. Reset password before re-enabling plugin.
 
-If you have access to the database (for example through phpMyAdmin) you can remove the plugin options value. This will revert settiongs to defaults which allow password reset using account e-mail (for privileged users).
+If you have access to the database (for example through phpMyAdmin) you can remove the plugin options value. This will revert settings to default values which allow password reset using account e-mail (for privileged users).
 
-Plugin options are stored in `limit_login_options` option in the wordpress options table. You can remove this in a default setup using: `DELETE FROM wp_options WHERE option_name = 'limit_login_options'`. PLEASE BE CAREFUL OR YOU WILL SCREW UP YOUR WORDPRESS INSTALL!
+Plugin options are stored in `limit_login_options` option in the wordpress options table. You can remove this in a default setup using: `DELETE FROM wp_options WHERE option_name = 'limit_login_options'`. PLEASE BE CAREFUL OR YOU MIGHT SCREW UP YOUR WORDPRESS INSTALL!
 
-Truly advanced users can edit the 'disable_pwd_reset' entry in the serialized array of course.
+Truly advanced users can edit the 'disable_pwd_reset' entry in the serialized array.
 
 == Screenshots ==
 
@@ -97,14 +94,12 @@ Truly advanced users can edit the 'disable_pwd_reset' entry in the serialized ar
 
 == Todo ==
 
-* cookie bug??
+* grep TODO
 
-* split admin page?
-* remove user name editing, have to think some more on this
+* re-do without using user levels
 * escape all translated strings
 
 * Re-re-check: user login name protection, track nonempty_credentials
-* re-do without using user levels
 
 * make dashboard text better
 
@@ -112,16 +107,11 @@ Truly advanced users can edit the 'disable_pwd_reset' entry in the serialized ar
 
 * TEST TEST TEST TEST
 
-* Links to faq/nicename
-
 * Translations
 * Look through readme.txt again
 
 * Update screenshots
 * Update site
-
-* track registrations
-* track last login
 
 == Change Log ==
 
@@ -138,7 +128,8 @@ Truly advanced users can edit the 'disable_pwd_reset' entry in the serialized ar
 * Updated Bulgarian translation, thanks to Hristo Chakarov
 * Updated Spanish translation, thanks to Marcelo Pedra
 * Added Brazilian Portugese translation, thanks to Gervásio
-* Plugin localization strings changed again unfortunately.
+* Plugin localization strings changed again unfortunately...
+* Removed user nicename editor for now. It is a lot of work to get working safely for everyone, and I need to wrap up release for version 2. Hopefully it'll be back later.
 
 = Version 2.0beta3 =
 * Checkpoint release for translations
@@ -156,6 +147,17 @@ Truly advanced users can edit the 'disable_pwd_reset' entry in the serialized ar
 * restrict rate of new user registrations
 * filter registration error messages to avoid possible way to brute force find user login name
 * list of privileged users show which login names can be discovered from user displayname, nickname or "url name"/nicename
+
+= 1.6.0 =
+* Happy New Year
+* Tested against WordPress 3.1-RC1
+* Plugin now requires WordPress version 2.8+. Of course you should never ever use anything but the latest version
+* Fixed deprecation warnings that had been piling up with the old version requirement. Thanks to Johannes Ruthenberg for the report that prompted this
+* Removed auth cookie admin check for version 2.7.
+* Make sure relevant values in $_COOKIE get cleared right away on auth cookie validation failure. There are still some problems with cookie auth handling. The lockout can trigger prematurely in rare cases, but fixing it is plugin version 2 stuff unfortunately.
+* Changed default time for retries to reset from 24 hours to 12 hours. The security impact is very minor and it means the warning will disappear "overnight"
+* Added question to FAQ ("Why not reset failed attempts on a successful login?")
+* Updated screenshots
 
 = 1.5.2 =
 * Reverted minor cookie-handling cleanup which might somehow be responsible for recently reported cookie related lockouts

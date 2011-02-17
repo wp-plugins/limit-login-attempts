@@ -3,7 +3,7 @@
   Limit Login Attempts: plugin upgrade functions
   Version 2.0beta4
 
-  Copyright 2009, 2010 Johan Eenfeldt
+  Copyright 2008 - 2011 Johan Eenfeldt
 
   Licenced under the GNU GPL:
 
@@ -46,7 +46,7 @@ $GLOBALS['limit_login_options_v1'] =
 /* Upgrade options from previous version if necessary */
 function limit_login_handle_upgrades() {
 	/*
-	 * Do we have new-style (versioned) options stored?
+	 * Do we have new-style options?
 	 */
 	if (!limit_login_options_exists()) {
 		/*
@@ -71,7 +71,7 @@ function limit_login_handle_upgrades() {
 	 * New-style options are versioned so we can check stored value
 	 */
 	$current_version = limit_login_option('version');
-	if ($current_version == LIMIT_LOGIN_OPTIONS_VERSION)
+	if ($current_version == LIMIT_LOGIN_VERSION)
 		return;
 
 	/*
@@ -94,7 +94,7 @@ function limit_login_handle_upgrades() {
 	/* Set current version */
 	global $limit_login_options;
 
-	$limit_login_options['version'] = LIMIT_LOGIN_OPTIONS_VERSION;
+	$limit_login_options['version'] = LIMIT_LOGIN_VERSION;
 	limit_login_update_options();
 }
 

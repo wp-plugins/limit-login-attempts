@@ -3,7 +3,7 @@
   Limit Login Attempts: options handling
   Version 2.0beta4
 
-  Copyright 2008, 2009, 2010 Johan Eenfeldt
+  Copyright 2008 - 2011 Johan Eenfeldt
 
   Licenced under the GNU GPL:
 
@@ -31,8 +31,8 @@ if (!defined('ABSPATH'))
  * Constants
  */
 
-/* Current version of plugin options */
-define('LIMIT_LOGIN_OPTIONS_VERSION', 2);
+/* Current version of plugin stored values (options, log, ...) */
+define('LIMIT_LOGIN_VERSION', 2);
 
 /* Option name in WP options table */
 define('LIMIT_LOGIN_OPTIONS_NAME', limit_login_name('options'));
@@ -53,8 +53,8 @@ $GLOBALS['limit_login_options'] = array();
 /* Default values for options */
 $GLOBALS['limit_login_options_default'] =
 	array(
-	      /* Plugin options version (for easier plugin upgrades) */
-	      'version' => LIMIT_LOGIN_OPTIONS_VERSION
+	      /* Plugin stored values version (for safe plugin upgrades) */
+	      'version' => LIMIT_LOGIN_VERSION
 
 	      /* Are we behind a proxy? */
 	      , 'client_type' => LIMIT_LOGIN_DIRECT_ADDR
@@ -72,7 +72,7 @@ $GLOBALS['limit_login_options_default'] =
 	      , 'long_duration' => 86400 // 24 hours
 
 	      /* Reset failed attempts after this many seconds */
-	      , 'valid_duration' => 86400 // 24 hours
+	      , 'valid_duration' => 43200 // 12 hours
 
 	      /* Also limit malformed/forged cookies? */
 	      , 'cookies' => true
@@ -114,7 +114,26 @@ $GLOBALS['limit_login_options_default'] =
  * Functions start here
  */
 
-/* Get current value for option */
+/* Setup plugin options */
+function limit_login_setup_options() {
+	global $limit_login_options, $limit_login_options_default;
+
+	$limit_login_options = get_option(LIMIT_LOGIN_OPTIONS_NAME);
+
+	if (!is_array($limit_login_options)) {
+		$limit_login_options = $limit_login_options_default;
+		return;
+	}
+
+	limit_login_sanitize_options();
+}
+
+
+/*
+ * Get current value of a plugin option
+ *
+ * Options must be setup before using this function.
+ */
 function limit_login_option($option_name) {
 	global $limit_login_options;
 
@@ -145,21 +164,6 @@ function limit_login_cast_option($name, $value) {
 }
 
 
-/* Setup plugin options */
-function limit_login_setup_options() {
-	global $limit_login_options, $limit_login_options_default;
-
-	$options = get_option(LIMIT_LOGIN_OPTIONS_NAME);
-
-	if (!is_array($options)) {
-		$limit_login_options = $limit_login_options_default;
-		return;
-	}
-
-	limit_login_sanitize_options();
-}
-
-
 /* Check if stored options exists */
 function limit_login_options_exists() {
 	return get_option(LIMIT_LOGIN_OPTIONS_NAME) !== false;
@@ -170,7 +174,7 @@ function limit_login_options_exists() {
 function limit_login_update_options() {
 	global $limit_login_options;
 
-	/* This will automatically create option if it does not exist */
+	/* This will create option table value if it does not exist */
 	update_option(LIMIT_LOGIN_OPTIONS_NAME, $limit_login_options);
 }
 
@@ -179,14 +183,14 @@ function limit_login_update_options() {
 function limit_login_sanitize_options() {
 	global $limit_login_options, $limit_login_options_default;
 
-	/* Make sure option is valid */
+	/* Make sure options are valid */
 	foreach ($limit_login_options as $name => $current_value) {
 		if (!isset($limit_login_options_default[$name])) {
 			unset($limit_login_options[$name]);
 			continue;
 		}
 
-		$limit_login_options[$name] = limit_login_cast_option($name, $limit_login_options[$name]);
+		$limit_login_options[$name] = limit_login_cast_option($name, $current_value);
 	}
 
 	/* ... and that all options exists */
@@ -227,6 +231,7 @@ function limit_login_get_options_from_post() {
 		array('lockout_duration' => 60, 'valid_duration' => 3600
 		      , 'long_duration' => 3600, 'register_duration' => 3600);
 
+	/* Check for values that exists in defaults array */
 	foreach ($limit_login_options_default as $name => $default_value) {
 		if (is_bool($default_value)) {
 			/*

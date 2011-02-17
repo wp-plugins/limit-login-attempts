@@ -3,7 +3,7 @@
   Limit Login Attempts: admin functions
   Version 2.0beta4
 
-  Copyright 2009, 2010 Johan Eenfeldt
+  Copyright 2008 - 2011 Johan Eenfeldt
 
   Licenced under the GNU GPL:
 
@@ -52,12 +52,7 @@ $GLOBALS['limit_login_level_role'] =
 
 /* Add admin options page */
 function limit_login_admin_menu() {
-	add_options_page('Limit Login Attempts', 'Limit Login Attempts', 8, 'limit-login-attempts', 'limit_login_option_page');
-
-	if ( isset($_GET['page'])
-		 && 	$_GET['page'] == "limit-login-attempts" ) {	
-		wp_enqueue_script('jquery');
-	}
+	add_options_page('Limit Login Attempts', 'Limit Login Attempts', 'manage_options', 'limit-login-attempts', 'limit_login_option_page');
 }
 
 
@@ -124,7 +119,7 @@ function limit_login_show_log($log) {
 		return;
 	}
 
-	echo('<tr><th scope="col">' . _c("IP|Internet address", 'limit-login-attempts') . '</th>'
+	echo('<tr><th scope="col">' . _x("IP", "Internet address", 'limit-login-attempts') . '</th>'
 	     . '<th scope="col">' . __('Last lockout', 'limit-login-attempts') . '</th>'
 	     . '<th scope="col">' . __('Tried to log in as', 'limit-login-attempts') . '</th></tr>');
 	foreach ($log as $ip => $iplog) {
@@ -139,7 +134,7 @@ function limit_login_show_log($log) {
 		     . '<td class="limit-login-max">');
 		$first = true;
 		foreach($arr as $user => $count) {
-			$count_desc = sprintf(__ngettext('%d lockout', '%d lockouts', $count, 'limit-login-attempts'), $count);
+			$count_desc = sprintf(_n('%d lockout', '%d lockouts', $count, 'limit-login-attempts'), $count);
 			if (!$first)
 				echo(', ' . $user . ' (' .  $count_desc . ')');
 			else
@@ -149,198 +144,6 @@ function limit_login_show_log($log) {
 		}
 		echo('</td></tr>');
 	}
-}
-
-
-/*
- * Fuzzy compare of strings:
- * Remove space and - characters before comparing (because of how user_nicename
- * is constructed from user_login)
- */
-function limit_login_fuzzy_cmp($s1, $s2) {
-	$remove = array(' ', '-');
-
-	return strcasecmp(str_replace($remove, '', $s1), str_replace($remove, '', $s2));
-}
-
-
-/* Show privileged users various names, and warn if equal to login name */
-function limit_login_show_users() {
-	global $wpdb;
-
-	/*
-	 * Scary-looking query! We want to get the various user names of all users
-	 * that have privileges: !subsciber & !unapproved
-	 *
-	 * We join the users table twice with the usermeta table. This is so we
-	 * can filter against capabilities while getting nickname.
-	 */
-	$sql = "SELECT u.ID, u.user_login, u.user_nicename, u.display_name"
-		. " , um.meta_value AS role, um2.meta_value AS nickname"
-		. " FROM $wpdb->users u"
-		. " INNER JOIN $wpdb->usermeta um ON u.ID = um.user_id"
-		. " LEFT JOIN $wpdb->usermeta um2 ON u.ID = um2.user_id"
-		. " WHERE um.meta_key = '{$wpdb->prefix}capabilities'"
-		. " AND NOT (um.meta_value LIKE '%subscriber%'"
-		. "          OR um.meta_value LIKE '%unapproved%')"
-		. " AND um2.meta_key = 'nickname'";
-
-	$users = $wpdb->get_results($sql);
-
-	if (!$users || count($users) == 0) {
-		return;
-	}
-
-	$r = '';
-	$bad_count = 0;
-	foreach ($users as $user) {
-		/*
-		 * We'll warn if:
-		 * - user login name is 'admin' (WordPress default value)
-		 * - any visible user name is the same as user login name
-		 */
-		$login_ok = limit_login_fuzzy_cmp($user->user_login, 'admin');
-		$display_ok = limit_login_fuzzy_cmp($user->user_login, $user->display_name);
-		$nicename_ok = limit_login_fuzzy_cmp($user->user_login, $user->user_nicename);
-		$nickname_ok = limit_login_fuzzy_cmp($user->user_login, $user->nickname);
-
-		if (!($login_ok && $display_ok && $nicename_ok && $nickname_ok))
-			$bad_count++;
-
-		$edit = "user-edit.php?user_id={$user->ID}";
-		$nicename_input = '<input type="text" size="20" maxlength="45"'
-			. " value=\"{$user->user_nicename}\" name=\"nicename-{$user->ID}\""
-			. ' class="warning-disabled" disabled="true" />';
-
-		$role = implode(',', array_keys(maybe_unserialize($user->role)));
-		$login = limit_login_show_maybe_warning(!$login_ok, $user->user_login, $edit
-					, __("Account named admin should not have privileges", 'limit-login-attempts'));
-		$display = limit_login_show_maybe_warning(!$display_ok, $user->display_name, $edit
-					, __("Make display name different from login name", 'limit-login-attempts'));
-		$nicename = limit_login_show_maybe_warning(!$nicename_ok, $nicename_input, ''
-					, __("Make url name different from login name", 'limit-login-attempts'));
-		$nickname = limit_login_show_maybe_warning(!$nickname_ok, $user->nickname, $edit
-					, __("Make nickname different from login name", 'limit-login-attempts'));
-
-		$r .= '<tr><td>' . $edit_link . $login . '</a></td>'
-			. '<td>' . $role . '</td>'
-			. '<td>' . $display . '</td>'
-			. '<td>' . $nicename . '</td>'
-			. '<td>' . $nickname . '</td>'
-			. '</tr>';
-	}
-
-	if (!$bad_count) {
-		echo(sprintf('<p><i>%s</i></p>'
-			     , __("Privileged usernames, display names, url names and nicknames are ok", 'limit-login-attempts')));
-	}
-
-	echo('<table class="widefat"><thead><tr class="thead">' 
-		 . '<th scope="col">'
-		 . __("User Login", 'limit-login-attempts')
-		 . '</th><th scope="col">'
-		 . __('Role', 'limit-login-attempts')
-		 . '</th><th scope="col">'
-		 . __('Display Name', 'limit-login-attempts')
-		 . '</th><th scope="col">'
-		 . __('URL Name <small>("nicename")</small>', 'limit-login-attempts')
-		 . ' <a href="http://wordpress.org/extend/plugins/limit-login-attempts/faq/"'
-		 . ' title="' . __('What is this?', 'limit-login-attempts') . '">?</a>'
-		 . '</th><th scope="col">'
-		 . __('Nickname', 'limit-login-attempts')
-		 . '</th></tr></thead>'
-		 . $r
-		 . '</table>');
-}
-
-
-/* Format username in list (in limit_login_show_users()) */
-function limit_login_show_maybe_warning($is_warn, $name, $edit_url, $title) {
-	static $alt, $bad_img_url;
-
-	if (!$is_warn) {
-		return $name;
-	}
-
-	if (empty($alt)) {
-		$alt = __("bad name", 'limit-login-attempts');
-	}
-
-	if (empty($bad_img_url)) {
-		if ( !defined('WP_PLUGIN_URL') )
-			$plugin_url = get_option('siteurl') . '/wp-content/plugins';
-		else
-			$plugin_url = WP_PLUGIN_URL;
-
-		$plugin_url .= '/' . dirname(plugin_basename(__FILE__));
-
-		$bad_img_url = $plugin_url . '/images/icon_bad.gif';
-	}
-
-	$s = "<img src=\"$bad_img_url\" alt=\"$alt\" title=\"$title\" />";
-	if (!empty($edit_url))
-		$s .= "<a href=\"$edit_url\" title=\"$title\">";
-	$s .= $name;
-	if (!empty($edit_url))
-		$s .= '</a>';
-
-	return $s;
-}
-
-
-/*
- * Update user nicenames from _POST values. Dangerous stuff! Make sure to check
- * privileges and security before calling function.
- */
-function limit_login_nicenames_from_post() {
-	static $match = 'nicename-'; /* followed by user id */
-	$changed = '';
-
-	foreach ($_POST as $name => $val) {
-		if (strncmp($name, $match, strlen($match)))
-			continue;
-
-		/* Get user ID */
-		$a = explode('-', $name);
-		$id = intval($a[1]);
-		if (!$id)
-			continue;
-
-		/*
-		 * To be safe we use the same functions as when an original nicename is
-		 * constructed from user login name.
-		 */
-		$nicename = sanitize_title(sanitize_user($val, true));
-
-		if (empty($nicename))
-			continue;
-
-		/* Check against original user */
-		$user = get_userdata($id);
-
-		if (!$user)
-			continue;
-
-		/* nicename changed? */
-		if (!strcmp($nicename, $user->user_nicename))
-			continue;
-
-		$userdata = array('ID' => $id, 'user_nicename' => $nicename);
-		wp_update_user($userdata);
-
-		wp_cache_delete($user->user_nicename, 'userlugs');
-
-		if (!empty($changed))
-			$changed .= ', ';
-		$changed .= "'{$user->user_login}' nicename {$user->user_nicename} => $nicename";
-	}
-
-	if (!empty($changed))
-		$msg = __('URL names changed', 'limit-login-attempts') . '<br />' . $changed;
-	else
-		$msg = __('No names changed', 'limit-login-attempts');
-
-	limit_login_admin_message($msg);
 }
 
 
@@ -442,10 +245,6 @@ function limit_login_option_page() {
 		limit_login_admin_message(__('Options changed', 'limit-login-attempts'));
 	}
 
-	/* Should we change user nicenames?? */
-	if (isset($_POST['users_submit']))
-		limit_login_nicenames_from_post();
-
 	/*
 	 * Setup to show admin page
 	 */
@@ -489,17 +288,6 @@ function limit_login_option_page() {
 	$register_enforce_yes = limit_login_option('register_enforce') ? ' checked ' : '';
 
 	?>
-    <script type="text/javascript">
-		 jQuery(document).ready(function(){
-				 jQuery("#warning_checkbox").click(function(event){
-						 if (jQuery(this).attr("checked")) {
-							 jQuery("input.warning-disabled").removeAttr("disabled");
-						 } else {
-							 jQuery("input.warning-disabled").attr("disabled", "disabled");
-						 }
-					 });
-			 });
-    </script>
 	<style type="text/css" media="screen">
 		table.limit-login {
 			width: 100%;
@@ -629,15 +417,6 @@ function limit_login_option_page() {
 		<p class="submit">
 		  <input name="update_options" class="button-primary" value="<?php _e('Change Options','limit-login-attempts'); ?>" type="submit" />
 		</p>
-	  </form>
-	  <h3><?php _e('Privileged users','limit-login-attempts'); ?></h3>
-	  <form action="<?php echo $limit_login_option_page; ?>" method="post" name="form_users">
-		<?php wp_nonce_field('limit-login-attempts-options'); ?>
-
-		<?php limit_login_show_users(); ?>
-		<div class="tablenav actions">
-		  <input type="checkbox" id="warning_checkbox" name="warning_danger" value="1" name="users_warning_check" /> <?php echo sprintf(__('I <a href="%s">understand</a> the problems involved', 'limit-login-attempts'), 'http://wordpress.org/extend/plugins/limit-login-attempts/faq/'); ?></a> <input type="submit" class="button-secondary action warning-disabled" value="<?php _e('Change Names', 'limit-login-attempts'); ?>" name="users_submit" disabled="true" />
-		</div>
 	  </form>
 	  <?php
 		$log = limit_login_get_array('logged');
