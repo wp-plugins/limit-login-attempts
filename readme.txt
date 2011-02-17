@@ -3,7 +3,7 @@ Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.8
 Tested up to: 3.0.1
-Stable tag: 1.6.0
+Stable tag: 1.6.1
 
 Limit rate of login attempts for each IP. Also support additional security for password reset, rate limit on new user registrations, and more.
 
