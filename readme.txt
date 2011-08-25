@@ -3,7 +3,7 @@ Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.8
 Tested up to: 3.0.1
-Stable tag: 1.6.1
+Stable tag: 1.6.2
 
 Limit rate of login attempts for each IP. Also support additional security for password reset, rate limit on new user registrations, and more.
 
@@ -122,8 +122,8 @@ Truly advanced users can edit the 'disable_pwd_reset' entry in the serialized ar
 * Make cookie handling optional again for now -- some people have reported problems with it in 1.5.1
 * Only autoload the necessary option table entries
 * Log time of last lockout for each IP in log; keep track of last increase + last clear for statistics
-* Forward-merged changes from versions 1.5 - 1.5.2
-* Move translations to separate directories
+* Forward-merged changes from versions 1.5 - 1.6.1
+* Move translations to separate directory
 * Updated Swedish translation
 * Updated Bulgarian translation, thanks to Hristo Chakarov
 * Updated Spanish translation, thanks to Marcelo Pedra

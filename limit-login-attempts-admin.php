@@ -39,11 +39,11 @@ $GLOBALS['limit_login_option_page'] = admin_url('options-general.php?page=limit-
 
 /* Level of the different roles. Used for descriptive purposes only */
 $GLOBALS['limit_login_level_role'] =
-	array(0 => __('Subscriber','limit-login-attempts')
-	      , 1 => __('Contributor','limit-login-attempts')
-	      , 2 => __('Author','limit-login-attempts')
-	      , 7 => __('Editor','limit-login-attempts')
-	      , 10 => __('Administrator','limit-login-attempts'));
+	array(0 => __('Subscriber', 'limit-login-attempts')
+	      , 1 => __('Contributor', 'limit-login-attempts')
+	      , 2 => __('Author', 'limit-login-attempts')
+	      , 7 => __('Editor', 'limit-login-attempts')
+	      , 10 => __('Administrator', 'limit-login-attempts'));
 
 
 /*
@@ -199,10 +199,10 @@ function limit_login_admin_message($msg) {
 function limit_login_option_page() {
 	global $limit_login_option_page;
 
-	limit_login_cleanup();
-
 	if (!current_user_can('manage_options'))
 		wp_die('Sorry, but you do not have permissions to change settings.');
+
+	limit_login_cleanup();
 
 	/* Make sure post was from this page */
 	if (count($_POST) > 0)
