@@ -6,7 +6,7 @@
   Author: Johan Eenfeldt
   Author URI: http://devel.kostdoktorn.se
   Text Domain: limit-login-attempts
-  Version: 1.6.1
+  Version: 1.6.2
 
   Copyright 2008 - 2011 Johan Eenfeldt
 
@@ -85,7 +85,7 @@ $limit_login_nonempty_credentials = false; /* user and pwd nonempty */
  * Startup
  */
 
-limit_login_setup();
+add_action('init', 'limit_login_setup');
 
 
 /*
@@ -501,22 +501,26 @@ function limit_login_notify_email($user) {
 
 /* Logging of lockout (if configured) */
 function limit_login_notify_log($user) {
-	$log = get_option('limit_login_logged');
-	$ip = limit_login_get_address();
+	$log = $option = get_option('limit_login_logged');
 	if (!is_array($log)) {
-		$log = array($ip => array($user => 1));
+		$log = array();
+	}
+	$ip = limit_login_get_address();
+
+	/* can be written much simpler, if you do not mind php warnings */
+	if (isset($log[$ip])) {
+		if (isset($log[$ip][$user])) {	
+			$log[$ip][$user]++;
+		} else {
+			$log[$ip][$user] = 1;
+		}
+	} else {
+		$log[$ip] = array($user => 1);
+	}
+
+	if ($option === false) {
 		add_option('limit_login_logged', $log, '', 'no'); /* no autoload */
 	} else {
-		/* can be written much simpler, if you do not mind php warnings */
-		if (isset($log[$ip])) {
-			if (isset($log[$ip][$user])) {	
-				$log[$ip][$user]++;
-			} else {
-				$log[$ip][$user] = 1;
-			}
-		} else {
-			$log[$ip] = array($user => 1);
-		}
 		update_option('limit_login_logged', $log);
 	}
 }
@@ -855,7 +859,7 @@ function limit_login_option_page()	{
 		
 	/* Should we clear log? */
 	if (isset($_POST['clear_log'])) {
-		update_option('limit_login_logged', '');
+		delete_option('limit_login_logged');
 		echo '<div id="message" class="updated fade"><p>'
 			. __('Cleared IP log', 'limit-login-attempts')
 			. '</p></div>';

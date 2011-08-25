@@ -2,8 +2,8 @@
 Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.8
-Tested up to: 3.1-RC4
-Stable tag: 1.6.1
+Tested up to: 3.2.1
+Stable tag: 1.6.2
 
 Limit rate of login attempts, including by way of cookies, for each IP. Fully customizable.
 
@@ -66,6 +66,12 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 3. Administration interface in WordPress 3.0.4
 
 == Changelog ==
+
+= 1.6.2 =
+* Fix bug where log would not get updated after it had been cleared
+* Do plugin setup in 'init' action
+* Small update to Spanish translation file, thanks to Marcelo Pedra
+* Tested against WordPress 3.2.1
 
 = 1.6.1 =
 * (WordPress 3.0+) An invalid cookie can sometimes get sent multiple times before it gets cleared, resulting in multiple failed attempts or even a lockout from a single invalid cookie. Store the latest failed cookie to make sure we only count it as one failed attempt
