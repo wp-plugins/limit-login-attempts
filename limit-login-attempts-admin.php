@@ -210,7 +210,7 @@ function limit_login_option_page() {
 		
 	/* Should we clear log? */
 	if (isset($_POST['clear_log'])) {
-		update_option('limit_login_logged', array());
+		limit_login_store_array('logged', array());
 		limit_login_admin_message(__('Cleared IP log', 'limit-login-attempts'));
 	}
 		

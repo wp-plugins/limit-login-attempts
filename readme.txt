@@ -11,6 +11,8 @@ Limit rate of login attempts for each IP. Also support additional security for p
 
 THIS IS A BETA VERSION!
 
+Additional security features for many parts of user handling: login, signup, password reset and more.
+
 Limit the number of login attempts possible both through normal login as well as using auth cookies.
 
 By default WordPress allows unlimited login attempts either through the login page or by sending special cookies. This allows passwords (or hashes) to be brute-force cracked with relative ease.
@@ -84,6 +86,10 @@ Plugin options are stored in `limit_login_options` option in the wordpress optio
 
 Truly advanced users can edit the 'disable_pwd_reset' entry in the serialized array.
 
+Plugin options are stored in `limit_login_options` option in the wordpress options table. You can remove this in a default setup using: `DELETE FROM wp_options WHERE option_name = 'limit_login_options'`. PLEASE BE CAREFUL OR YOU WILL SCREW UP YOUR WORDPRESS INSTALL!
+
+Truly advanced users can edit the 'disable_pwd_reset' entry in the serialized array of course.
+
 == Screenshots ==
 
 1. Loginscreen after failed login with retries remaining
@@ -113,6 +119,9 @@ Truly advanced users can edit the 'disable_pwd_reset' entry in the serialized ar
 * Update screenshots
 * Update site
 
+* track registrations
+* track last login
+
 == Change Log ==
 
 = Version 2.0beta4 =
@@ -122,7 +131,7 @@ Truly advanced users can edit the 'disable_pwd_reset' entry in the serialized ar
 * Make cookie handling optional again for now -- some people have reported problems with it in 1.5.1
 * Only autoload the necessary option table entries
 * Log time of last lockout for each IP in log; keep track of last increase + last clear for statistics
-* Forward-merged changes from versions 1.5 - 1.6.1
+* Forward-merged changes from versions 1.5 - 1.6.2
 * Move translations to separate directory
 * Updated Swedish translation
 * Updated Bulgarian translation, thanks to Hristo Chakarov
@@ -147,6 +156,19 @@ Truly advanced users can edit the 'disable_pwd_reset' entry in the serialized ar
 * restrict rate of new user registrations
 * filter registration error messages to avoid possible way to brute force find user login name
 * list of privileged users show which login names can be discovered from user displayname, nickname or "url name"/nicename
+
+= 1.6.2 =
+* Fix bug where log would not get updated after it had been cleared
+* Do plugin setup in 'init' action
+* Small update to Spanish translation file, thanks to Marcelo Pedra
+* Tested against WordPress 3.2.1
+
+= 1.6.1 =
+* (WordPress 3.0+) An invalid cookie can sometimes get sent multiple times before it gets cleared, resulting in multiple failed attempts or even a lockout from a single invalid cookie. Store the latest failed cookie to make sure we only count it as one failed attempt
+* Define "Text Domain" correctly
+* Include correct Dutch tranlation file. Thanks to Martin1 for noticing. Thanks again to Bjorn Wijers for the translation
+* Updated POT file for this version
+* Tested against WordPress 3.1-RC4
 
 = 1.6.0 =
 * Happy New Year

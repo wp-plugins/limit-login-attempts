@@ -71,7 +71,7 @@ $limit_login_statistics = null; /* statistics, stored in option table */
  * Startup
  */
 
-limit_login_setup();
+add_action('init', 'limit_login_setup');
 
 
 /*
@@ -809,11 +809,7 @@ function limit_login_get_array($array_name) {
 	if (is_array($a))
 		return $a;
 
-	$a = array();
-	$autoload = limit_login_is_array_autoload($array_name) ? 'yes' : 'no';
-	add_option($real_array_name, $a, '', $autoload);
-
-	return $a;
+	return array();
 }
 
 
