@@ -6,9 +6,9 @@
   Author: Johan Eenfeldt
   Author URI: http://devel.kostdoktorn.se
   Text Domain: limit-login-attempts
-  Version: 1.6.2
+  Version: 1.7.0
 
-  Copyright 2008 - 2011 Johan Eenfeldt
+  Copyright 2008 - 2012 Johan Eenfeldt
 
   Thanks to Michael Skerwiderski for reverse proxy handling suggestions.
 
@@ -43,7 +43,7 @@ define('LIMIT_LOGIN_LOCKOUT_NOTIFY_ALLOWED', 'log,email');
 /*
  * Variables
  *
- * Assignments are for default value -- change in admin page.
+ * Assignments are for default value -- change on admin page.
  */
 
 $limit_login_options =
@@ -175,9 +175,39 @@ function limit_login_get_address($type_name = '') {
 }
 
 
+/*
+ * Check if IP is whitelisted.
+ *
+ * This function allow external ip whitelisting using a filter. Note that it can
+ * be called multiple times during the login process.
+ *
+ * Note that retries and statistics are still counted and notifications
+ * done as usual for whitelisted ips , but no lockout is done.
+ *
+ * Example:
+ * function my_ip_whitelist($allow, $ip) {
+ * 	return ($ip == 'my-ip') ? true : $allow;
+ * }
+ * add_filter('limit_login_whitelist_ip', 'my_ip_whitelist', 10, 2);
+ */
+function is_limit_login_ip_whitelisted($ip = null) {
+	if (is_null($ip)) {
+		$ip = limit_login_get_address();
+	}
+	$whitelisted = apply_filters('limit_login_whitelist_ip', false, $ip);
+
+	return ($whitelisted === true);
+}
+
+
 /* Check if it is ok to login */
 function is_limit_login_ok() {
 	$ip = limit_login_get_address();
+
+	/* Check external whitelist filter */
+	if (is_limit_login_ip_whitelisted($ip)) {
+		return true;
+	}
 
 	/* lockout active? */
 	$lockouts = get_option('limit_login_lockouts');
@@ -324,6 +354,9 @@ function limit_login_clear_auth_cookie() {
  *
  * Increase nr of retries (if necessary). Reset valid value. Setup
  * lockout if nr of retries are above threshold. And more!
+ *
+ * A note on external whitelist: retries and statistics are still counted and
+ * notifications done as usual, but no lockout is done.
  */
 function limit_login_failed($username) {
 	$ip = limit_login_get_address();
@@ -369,20 +402,34 @@ function limit_login_failed($username) {
 
 	/* lockout! */
 
-	global $limit_login_just_lockedout;
-	$limit_login_just_lockedout = true;
+	$whitelisted = is_limit_login_ip_whitelisted($ip);
 
-	/* setup lockout, reset retries as needed */
 	$retries_long = limit_login_option('allowed_retries')
-	    * limit_login_option('allowed_lockouts');
-	if ($retries[$ip] >= $retries_long) {
-	    /* long lockout */
-	    $lockouts[$ip] = time() + limit_login_option('long_duration');
-	    unset($retries[$ip]);
-	    unset($valid[$ip]);
+		* limit_login_option('allowed_lockouts');
+
+	/* 
+	 * Note that retries and statistics are still counted and notifications
+	 * done as usual for whitelisted ips , but no lockout is done.
+	 */
+	if ($whitelisted) {
+		if ($retries[$ip] >= $retries_long) {
+			unset($retries[$ip]);
+			unset($valid[$ip]);
+		}
 	} else {
-	    /* normal lockout */
-	    $lockouts[$ip] = time() + limit_login_option('lockout_duration');
+		global $limit_login_just_lockedout;
+		$limit_login_just_lockedout = true;
+
+		/* setup lockout, reset retries as needed */
+		if ($retries[$ip] >= $retries_long) {
+			/* long lockout */
+			$lockouts[$ip] = time() + limit_login_option('long_duration');
+			unset($retries[$ip]);
+			unset($valid[$ip]);
+		} else {
+			/* normal lockout */
+			$lockouts[$ip] = time() + limit_login_option('lockout_duration');
+		}
 	}
 
 	/* do housecleaning and save values */
@@ -394,9 +441,9 @@ function limit_login_failed($username) {
 	/* increase statistics */
 	$total = get_option('limit_login_lockouts_total');
 	if ($total === false || !is_numeric($total)) {
-	    add_option('limit_login_lockouts_total', 1, '', 'no');
+		add_option('limit_login_lockouts_total', 1, '', 'no');
 	} else {
-	    update_option('limit_login_lockouts_total', $total + 1);
+		update_option('limit_login_lockouts_total', $total + 1);
 	}
 }
 
@@ -451,6 +498,7 @@ function is_limit_login_multisite() {
 /* Email notification of lockout to admin (if configured) */
 function limit_login_notify_email($user) {
 	$ip = limit_login_get_address();
+	$whitelisted = is_limit_login_ip_whitelisted($ip);
 
 	$retries = get_option('limit_login_retries');
 	if (!is_array($retries)) {
@@ -482,8 +530,16 @@ function limit_login_notify_email($user) {
 
 	$blogname = is_limit_login_multisite() ? get_site_option('site_name') : get_option('blogname');	
 
-	$subject = sprintf(__("[%s] Too many failed login attempts", 'limit-login-attempts')
-			   , $blogname);
+	if ($whitelisted) {
+		$subject = sprintf(__("[%s] Failed login attempts from whitelisted IP"
+				      , 'limit-login-attempts')
+				   , $blogname);
+	} else {
+		$subject = sprintf(__("[%s] Too many failed login attempts"
+				      , 'limit-login-attempts')
+				   , $blogname);
+	}
+
 	$message = sprintf(__("%d failed login attempts (%d lockout(s)) from IP: %s"
 			      , 'limit-login-attempts') . "\r\n\r\n"
 			   , $count, $lockouts, $ip);
@@ -491,7 +547,11 @@ function limit_login_notify_email($user) {
 		$message .= sprintf(__("Last user attempted: %s", 'limit-login-attempts')
 				    . "\r\n\r\n" , $user);
 	}
-	$message .= sprintf(__("IP was blocked for %s", 'limit-login-attempts'), $when);
+	if ($whitelisted) {
+		$message .= __("IP was NOT blocked because of external whitelist.", 'limit-login-attempts');
+	} else {
+		$message .= sprintf(__("IP was blocked for %s", 'limit-login-attempts'), $when);
+	}
 
 	$admin_email = is_limit_login_multisite() ? get_site_option('admin_email') : get_option('admin_email');
 
@@ -600,6 +660,12 @@ function limit_login_retries_remaining_msg() {
 
 /* Return current (error) message to show, if any */
 function limit_login_get_message() {
+	/* Check external whitelist */
+	if (is_limit_login_ip_whitelisted()) {
+		return '';
+	}
+
+	/* Is lockout in effect? */
 	if (!is_limit_login_ok()) {
 		return limit_login_error_msg();
 	}
