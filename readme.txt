@@ -119,9 +119,6 @@ Truly advanced users can edit the 'disable_pwd_reset' entry in the serialized ar
 * Update screenshots
 * Update site
 
-* track registrations
-* track last login
-
 == Change Log ==
 
 = Version 2.0beta4 =
