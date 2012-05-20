@@ -3,7 +3,7 @@ Contributors: johanee
 Tags: login, security, authentication
 Requires at least: 2.8
 Tested up to: 3.3.2
-Stable tag: 1.6.2
+Stable tag: 1.7.0
 
 Limit rate of login attempts, including by way of cookies, for each IP. Fully customizable.
 
@@ -85,8 +85,9 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 == Changelog ==
 
 = 1.7.0 =
-* Added filter that allows whitelisting of IPs because of popular demand. Please use with care!!
+* Added filter that allows whitelisting IP. Please use with care!!
 * Update to Spanish translation, thanks to Marcelo Pedra
+* Updated Swedish translation
 * Tested against WordPress 3.3.2
 
 = 1.6.2 =
