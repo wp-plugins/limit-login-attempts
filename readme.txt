@@ -182,4 +182,5 @@ In theory the "auth cookie" is quite resistant to brute force attack. It contain
 
 == Upgrade Notice ==
 
-* 1.7.1 Users of version 1.6.2 and 1.7.0 should upgrade immediately. There was a problem with "auth cookie" lockout enforcement. Lockout of normal password login attempts still worked as it should. Please see plugin Changelog for more information.
+= 1.7.1 =
+Users of version 1.6.2 and 1.7.0 should upgrade immediately. There was a problem with "auth cookie" lockout enforcement. Lockout of normal password login attempts still worked as it should. Please see plugin Changelog for more information.
