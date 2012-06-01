@@ -232,3 +232,8 @@ Truly advanced users can edit the 'disable_pwd_reset' entry in the serialized ar
 
 = Version 1.0 =
 * Initial release
+
+== Upgrade Notice ==
+
+= 1.7.1 =
+Users of version 1.6.2 and 1.7.0 should upgrade immediately. There was a problem with "auth cookie" lockout enforcement. Lockout of normal password login attempts still worked as it should. Please see plugin Changelog for more information.
