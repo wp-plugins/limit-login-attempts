@@ -82,11 +82,6 @@ If you have access to the database (for example through phpMyAdmin) you can clea
 2. Loginscreen during lockout
 3. Administration interface in WordPress 3.0.4
 
-== Upgrade Notice ==
-
-= 1.7.1 =
-Users of version 1.6.2 and 1.7.0 should upgrade immediately. There was a problem with "auth cookie" lockout enforcement. Lockout of normal password login attempts still worked as it should. Please see plugin Changelog for more information.
-
 == Changelog ==
 
 = 1.7.1 =
@@ -184,3 +179,7 @@ In theory the "auth cookie" is quite resistant to brute force attack. It contain
 
 = 1.0 =
 * Initial version
+
+== Upgrade Notice ==
+
+* 1.7.1 Users of version 1.6.2 and 1.7.0 should upgrade immediately. There was a problem with "auth cookie" lockout enforcement. Lockout of normal password login attempts still worked as it should. Please see plugin Changelog for more information.
