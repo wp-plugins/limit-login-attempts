@@ -6,7 +6,7 @@
   Author: Johan Eenfeldt
   Author URI: http://devel.kostdoktorn.se
   Text Domain: limit-login-attempts
-  Version: 1.7.0
+  Version: 1.7.1
 
   Copyright 2008 - 2012 Johan Eenfeldt
 
@@ -85,7 +85,7 @@ $limit_login_nonempty_credentials = false; /* user and pwd nonempty */
  * Startup
  */
 
-add_action('init', 'limit_login_setup');
+add_action('plugins_loaded', 'limit_login_setup', 99999);
 
 
 /*
@@ -102,7 +102,7 @@ function limit_login_setup() {
 	/* Filters and actions */
 	add_action('wp_login_failed', 'limit_login_failed');
 	if (limit_login_option('cookies')) {
-		add_action('plugins_loaded', 'limit_login_handle_cookies', 99999);
+		limit_login_handle_cookies();
 		add_action('auth_cookie_bad_username', 'limit_login_failed_cookie');
 
 		global $wp_version;
@@ -239,7 +239,7 @@ function limit_login_failure_shake($error_codes) {
 
 
 /*
- * Action: called in plugin_loaded (really early) to make sure we do not allow
+ * Must be called in plugin_loaded (really early) to make sure we do not allow
  * auth cookies while locked out.
  */
 function limit_login_handle_cookies() {
